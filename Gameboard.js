@@ -1,10 +1,9 @@
 class Gameboard {
-    #currId = 0;
+    #currId = 1;
     constructor(sideLength) {
-        //2 sideLength x sideLength matrices
-        this.ship_grid = Array(sideLength).fill().map(() => Array(sideLength).fill(false));
-        this.shots = Array(sideLength).fill().map(() => Array(sideLength).fill(-1));
-        this.ships = [];
+        this.ship_grid = Array(sideLength).fill().map(() => Array(sideLength).fill(false)); //matrix to indicate ship placement
+        this.shots = Array(sideLength).fill().map(() => Array(sideLength).fill(false)); //matrix to indicate missed/hit shots
+        this.ships = []; //ship list
         
     }
 
@@ -16,7 +15,11 @@ class Gameboard {
      * @returns true if the ship was placed, false otherwise
     */
     placeShip(ship, coords, orientation) {
-        if (!this.#isInBounds(ship, coords, orientation) || !this.#inBoard(coords))
+        if (!this.#isInBounds(ship, coords, orientation)) {
+            return false
+        }
+
+        if (!this.#inBoard(coords))
             return false
 
         if (this.#willOverlap(ship, coords, orientation)) {
@@ -64,37 +67,38 @@ class Gameboard {
             case "left":
                 return 0 <= coords[0] - (ship.length - 1) 
             case "right":
-                return this.ship_grid.length >= coords[0] + (ship.length - 1)
+                return this.ship_grid.length > coords[0] + (ship.length - 1)
             case "up":
-                0 <= coords[1] - (ship.length - 1)
+                return 0 <= coords[1] - (ship.length - 1)
             case "down":
-                return this.ship_grid.length >= coords[1] + (ship.length - 1)
+                return this.ship_grid.length > coords[1] + (ship.length - 1)
         }
     } 
 
     #willOverlap(ship, coords, orientation) {
         if (orientation === "down") {
-            for (let i = coords[1] + ship.length; i >= coords[1] ; i--)
+            for (let i = coords[1] + (ship.length - 1); i >= coords[1] ; i--)
                     if (this.ship_grid[i][coords[0]])
-                        return false
+                        return true
         }
 
         if (orientation === "up") {
-            for (let i = coords[1] - ship.length; i < coords[1]; i++)
+            for (let i = coords[1] - (ship.length - 1); i < coords[1]; i++)
                     if (this.ship_grid[i][coords[0]])
-                        return false
+                        return true
         } 
 
         if (orientation === "left") {
-            for (let i = coords[0] - ship.length; i < coords[0]; i++)
-                if (this.ship_grid[coords[0]][i])
-                    return false
+            for (let i = coords[0] - (ship.length - 1); i < coords[0]; i++)
+                if (this.ship_grid[coords[1]][i])
+                    return true
         }
 
         if (orientation === "right") {
-            for (let i = coords[0] - ship.length; i >= coords[0]; i--)
-                if (this.ship_grid[coords[0]][i])
-                    return false
+            for (let i = coords[0] + (ship.length - 1); i >= coords[0]; i--)
+                if (this.ship_grid[coords[1]][i]) {
+                    return true
+                }
         }
         
     }
@@ -104,6 +108,28 @@ class Gameboard {
             coords[1] < this.ship_grid.length && coords[1] >= 0
     }
 
+    recieveAttack(coords) {
+        const x = coords[1]
+        const y = coords[0]
+        if (!this.#inBoard(coords) || this.shots[x][y]) {
+            return 0
+        }
+
+
+        if (this.ship_grid[x][y]) {
+            this.shots[x][y] = this.ship_grid[x][y] 
+            const hitShip = this.ships[this.ship_grid[x][y] - 1] 
+            hitShip.hit()
+            if (hitShip.isSunk()) {
+                if (this.ships.every((x) => x.isSunk()))
+                    return 2
+            }
+            return 1
+        } else {
+            this.shots[x][y] = -1
+            return -1
+        }
+    }
 
 }
 
