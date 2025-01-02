@@ -1,5 +1,5 @@
-import Gameboard from "./Gameboard.js"
-import Ship from "./Ship.js"
+import Gameboard from "../src/game_logic/Gameboard.js"
+import Ship from "../src/game_logic/Ship.js"
 import {beforeEach, describe, expect, test} from '@jest/globals'
 
 describe("constructor & existence tester", () => {

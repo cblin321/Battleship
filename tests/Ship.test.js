@@ -1,4 +1,4 @@
-import Ship from "./Ship.js"
+import Ship from "../src/game_logic/Ship.js"
 import {describe, expect, test} from '@jest/globals'
 
 test("Sunk Test", () => {
