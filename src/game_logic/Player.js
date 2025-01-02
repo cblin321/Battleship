@@ -1,9 +1,13 @@
 class Player {
-    #playerType
+    playerType
     #gameBoard
     constructor(type, sideLength) {
-        this.#playerType = type
+        this.playerType = type
         this.#gameBoard = new Gameboard(sideLength)
+    }
+
+    update(event) {
+
     }
 
     placeShip() {

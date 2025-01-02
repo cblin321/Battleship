@@ -8,7 +8,7 @@ class GameObserver {
     }
 
     notifyObservers(event) {
-        this.#observers.forEach(x => x.notify(event))
+        this.#observers.forEach(x => x.update(event))
     }
 
     playerShot(player, event) {
@@ -16,16 +16,13 @@ class GameObserver {
         this.notifyObservers(event) 
     }
 
-    changeTurn(turn) {
-
+    placeShip(player, event) {
+        player.placeShip(event.coords)
+        this.notifyObservers(event)
     }
 
     addObserver(observer) {
         this.#observers = [...this.#observers, observer]
-    }
-
-    handleUpdates(event) {
-        this.#observers.forEach(x => x.update(event))
     }
     
 }
