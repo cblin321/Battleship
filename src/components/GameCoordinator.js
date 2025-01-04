@@ -7,6 +7,7 @@ class GameCoordinator {
     BOARD_SIZE = 10
     
     #isPlayerTurn
+    #isActiveShipSelection
     
     #player = new Player("p", BOARD_SIZE)
     #computer = new Player("c", BOARD_SIZE)
@@ -128,10 +129,9 @@ class GameCoordinator {
         }
     }
 
-    #placeShip(player, UIShip, coords) {
+    #placeShip(event) {
         if (player.playerType === "p") {
-            //TODO notify user to place ships
-            this.#observer.placeShip(player, coords)
+            this.#observer.placeShip(event)
         }
 
     }
@@ -148,29 +148,73 @@ class GameCoordinator {
 
     }
 
-    async #playerShipSelection() {
+    async #playerShipPlacement() {
+        
         //TODO notify the user to select a ship
 
-        const shipPromiseList = this.#playerShips.map((x) => new Promise((resolve, reject) => x["ui"].addEventListener("click", () => {
-            resolve(x)
-        })))
-        
-        
+    
+
+        const selectElement = (ele) => { 
+            return new Promise((resolve, reject) => ele.addEventListener("click", () => {
+                resolve(x)
+            }))
+        }
+
+
         //wait until the user selects a ship
         //get 1st ship to be clicked
+        const shipPromiseList = this.#playerShips.map((x) => selectElement(x["ui"]))
+        
+        let ORIENTATIONS = [0, 90, 180, 270]
+        let orientation_index = 1
+
         const selectedShip = await Promise.race(shipPromiseList)
         
-        //TODO switching ships (recursion?)
+        //TODO notify user to ship selection controls:
+            //right clicking to rotate ship
+            //presss d to selected current ship, restart selection (recursion)
 
-        //notify the user to select a square
+            document.addEventListener("mousedown", (event) => {
+                if (event.button === 2) {  
+                    orientation_index = (orientation_index + 1) % ORIENTATIONS.length
+                    selectedShip["ui"].style.transform = `rotate(${ORIENTATIONS[orientation_index]}deg)`
+                }
+            });
+
+        document.addEventListener("keydown", (e) => {
+                if (e.key === "d" || e.key === "D") {
+                    //event listener cleanup
+                    this.#playerShips.map((x) => new Promise((resolve, reject) => x["ui"].addEventListener("click", (e) => {
+                        resolve(x)
+                    })))
+
+                    //restart playerSelection Process
+                    this.#isActiveShipSelection = true
+                    this.#playerShipPlacement()
+                }
+            })
+
+        //ship selection is over for current ship
+        if (!this.#isActiveShipSelection)
+            return
+            
+        //TODO notify the user to select a cell
+        
         //selected ship will be placed on the cell the mouse is over and if the cell is clicked
-        const cellPromiseList = [...this.#playerUIBoard.children].map()
+        
+        //TODO have a silhouette of where the ship will be
+        const cellPromiseList = [...this.#playerUIBoard.children].map((x) => selectElement(x))
+        const selectedCell = await Promise.race(cellPromiseList)
 
-        //TODO if a square is selected then notify that the ship has been placed
+        //TODO if a cell is occupied 
+        this.#placeShip(this.#player, selectedShip, [selectedCell.x, selectedCell.y])
+        
+        //TODO ship placement success
+
+        this.#isActiveShipSelection = false
+
     }
    
-   //have a silhouette of where the ship will be, as well as right click while selected to rotate
-   //click another hsip to select it and deselect selected ship
 
 }
 

@@ -1,5 +1,5 @@
-//observer class; handles notifies observers of events emitted by GC
-class GameObserver {
+//observer class - mediates actions that happen on the frontend with the backend
+class GameMediator {
 
     #observers = []
 
@@ -17,7 +17,7 @@ class GameObserver {
     }
 
     placeShip(player, event) {
-        player.placeShip(event.coords)
+        event.result = player.placeShip(event.coords)
         this.notifyObservers(event)
     }
 
@@ -27,4 +27,4 @@ class GameObserver {
     
 }
 
-export default UIBoard
+export default GameMediator
