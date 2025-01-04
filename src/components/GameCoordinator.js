@@ -154,11 +154,16 @@ class GameCoordinator {
 
     
 
-        const selectElement = (ele) => { 
-            return new Promise((resolve, reject) => ele.addEventListener("click", () => {
-                resolve(x)
-            }))
+        const selectElement = (ele) => {
+            return new Promise((resolve) => {
+                const clickHandler = () => {
+                    resolve(ele); // Resolve with the clicked element
+                    ele.removeEventListener("click", clickHandler); // Remove listener after selection
+                }
+                ele.addEventListener("click", clickHandler)
+            })
         }
+    
 
 
         //wait until the user selects a ship
@@ -184,9 +189,8 @@ class GameCoordinator {
         document.addEventListener("keydown", (e) => {
                 if (e.key === "d" || e.key === "D") {
                     //event listener cleanup
-                    this.#playerShips.map((x) => new Promise((resolve, reject) => x["ui"].addEventListener("click", (e) => {
-                        resolve(x)
-                    })))
+                    document.removeEventListener("mousedown", rightClickListener);
+                    // this.#playerShips.forEach((x) => x["ui"].remove("click", selectElement))
 
                     //restart playerSelection Process
                     this.#isActiveShipSelection = true
@@ -207,7 +211,7 @@ class GameCoordinator {
         const selectedCell = await Promise.race(cellPromiseList)
 
         //TODO if a cell is occupied 
-        this.#placeShip(this.#player, selectedShip, [selectedCell.x, selectedCell.y])
+        this.#placeShip(this.#player, selectedShip, [selectedCell["ui"].x, selectedCell["ui"].y])
         
         //TODO ship placement success
 
