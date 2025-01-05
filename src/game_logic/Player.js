@@ -7,11 +7,12 @@ class Player {
     }
 
     update(event) {
-
+        //reset in event of game end
+        //recieve attack
     }
 
-    placeShip() {
-        
+    placeShip(coords) {
+        return this.#gameBoard.placeShip(coords)
     }
 
     recieveAttack(coords) {

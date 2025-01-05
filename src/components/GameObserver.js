@@ -1,4 +1,4 @@
-//observer class - mediates actions that happen on the frontend with the backend
+//mediator class - mediates actions that happen on the frontend with the backend
 class GameMediator {
 
     #observers = []
