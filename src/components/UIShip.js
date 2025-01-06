@@ -5,10 +5,12 @@ class UIShip {
 
     constructor(length) {
         this.length = length
-    }
-
-    #createPegs() {
-
+        for (let i = 0; i < this.length; i++) {
+            let peg = document.createElement("div") 
+            peg.classList.add("ship-peg")
+            this.container.appendChild(peg)
+            this.pegs.push(peg)
+        }
     }
 
     recieveAttack() {
@@ -22,3 +24,5 @@ class UIShip {
 
 
 }
+
+export default UIShip

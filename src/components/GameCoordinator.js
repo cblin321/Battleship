@@ -9,8 +9,8 @@ class GameCoordinator {
     #isPlayerTurn
     #isActiveShipSelection
     
-    #player = new Player("p", BOARD_SIZE)
-    #computer = new Player("c", BOARD_SIZE)
+    #player = new Player("p", this.BOARD_SIZE)
+    #computer = new Player("c", this.BOARD_SIZE)
     
     #playerShips = [{"game_logic": new Ship(5), "ui": new UIShip(5)}, 
         {"game_logic": new Ship(4), "ui": new UIShip(4)}, 
@@ -25,13 +25,15 @@ class GameCoordinator {
         {"game_logic": new Ship(2), "ui": new UIShip(2)},
     ]
     
-    #playerUIBoard
-    #computerUIBoard 
+    playerUIBoard
+    computerUIBoard 
 
     #observer = new GameObserver([this.#player, this.#computer, this])
 
-    constructor() {
+    constructor(playerShipContainer, computerShipContainer) {
         this.#createUIBoardElement()
+        this.#computerShips.forEach(x => computerShipContainer.appendChild(x["ui"].container))
+        this.#playerShips.forEach(x => playerShipContainer.appendChild(x["ui"].container))
     }
 
     #playerShot = (e) => {
@@ -58,8 +60,8 @@ class GameCoordinator {
      * Initialize the HTML board elements
      */
     #createUIBoardElement() {
-        this.#playerUIBoard = document.createElement("div")
-        this.#computerUIBoard = document.createElement("div") 
+        this.playerUIBoard = document.createElement("div")
+        this.computerUIBoard = document.createElement("div") 
         for (let i = 0; i < this.BOARD_SIZE; i++)
             for (let j = 0; j < this.BOARD_SIZE; j++) {
                 const playerCell = document.createElement("div")
@@ -72,15 +74,18 @@ class GameCoordinator {
 
                 })
 
-                computerCell.x = j
-                computerCell.y = i
-                playerCell.x = j
-                playerCell.y = i
+                computerCell.dataset.x = j
+                computerCell.dataset.y = i
+                playerCell.dataset.x = j
+                playerCell.dataset.y = i
 
                 
-                this.#playerUIBoard.appendChild(playerCell)
-                this.#computerUIBoard.appendChild(computerCell)
+                this.playerUIBoard.appendChild(playerCell)
+                this.computerUIBoard.appendChild(computerCell)
             }
+        this.playerUIBoard.classList.add("ui-board")
+        this.computerUIBoard.classList.add("ui-board")
+        
     }
 
     /**
@@ -142,14 +147,17 @@ class GameCoordinator {
     gameLoop() {
         //ship placement process
             //while there are unplaced ships, continue prompting the user to place them
-
+        let unplaced = JSON.parse(JSON.stringify(this.#playerShips))
+        while (unplaced) {
+            this.#playerShipPlacement(unplaced)
+        }
         
     }
     
     async #playerShipPlacement() {
         
         //TODO notify the user to select a ship
-        
+        this.#playerShips.forEach((x) => x.classList.remove("selected"))
         
         
         const selectElement = (ele) => {
@@ -184,7 +192,7 @@ class GameCoordinator {
         let orientation_index = 1
         
         const selectedShip = await Promise.race(shipPromiseList)
-        
+        selectedShip["ui"].classList.add("selected")
         //TODO notify user to ship selection controls:
         //right clicking to rotate ship
         //presss d to selected current ship, restart selection (recursion)
@@ -207,7 +215,7 @@ class GameCoordinator {
         //selected ship will be placed on the cell the mouse is over and if the cell is clicked
         
         //TODO have a silhouette of where the ship will be
-        const cellPromiseList = [...this.#playerUIBoard.children].map((x) => selectElement(x))
+        const cellPromiseList = [...this.playerUIBoard.children].map((x) => selectElement(x))
         const selectedCell = await Promise.race(cellPromiseList)
         
         this.#placeShip(this.#player, selectedShip, [selectedCell["ui"].x, selectedCell["ui"].y])
@@ -236,4 +244,4 @@ class GameCoordinator {
 
 
 
-export default {playerBoard, computerBoard};
+export default GameCoordinator;

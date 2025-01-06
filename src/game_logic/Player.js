@@ -1,3 +1,4 @@
+import Gameboard from "./Gameboard"
 class Player {
     playerType
     #gameBoard
