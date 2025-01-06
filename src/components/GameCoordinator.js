@@ -31,6 +31,8 @@ class GameCoordinator {
     #observer = new GameObserver([this.#player, this.#computer, this])
 
     constructor(playerShipContainer, computerShipContainer) {
+        playerShipContainer.classList.add("ship-container")
+        computerShipContainer.classList.add("ship-container")
         this.#createUIBoardElement()
         this.#computerShips.forEach(x => computerShipContainer.appendChild(x["ui"].container))
         this.#playerShips.forEach(x => playerShipContainer.appendChild(x["ui"].container))

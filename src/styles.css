@@ -1,0 +1,44 @@
+body {
+    background-color: #1f1d1d;
+
+}
+
+.computer-cell, .player-cell {
+    width: 20px;
+    height: 20px;
+    border: 1px solid white;
+}
+
+.ui-board {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    gap: 0;
+    width: 220px;
+}
+
+.ship-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    width: 100px;
+}
+
+.ship-peg {
+    border: 1px solid orange;
+    height: 10px;
+    width: 10px;
+}
+
+.player
+
+body {
+    margin: 0;
+    height: 100vh;
+}
+
+.board-container {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+}
