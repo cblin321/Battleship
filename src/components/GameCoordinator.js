@@ -155,6 +155,9 @@ class GameCoordinator {
         }
         
     async #playerShipPlacement(unselectedShips) {
+        //TODO have the mouse point at the bottom/real placement point
+
+
         this.#isActiveShipSelection = true
         if (!unselectedShips)
             return
@@ -163,11 +166,34 @@ class GameCoordinator {
             x["ui"].container.classList.remove("selected")
         })
         
-        
+        let xPos = 0  
+        let yPos = 0  
+        let xVel = 0  
+        let yVel = 0  
+        const acceleration = 1.5 
         const selectElement = (ele) => {
             return new Promise((resolve) => {
                 const clickHandler = () => {
+                    document.addEventListener('mousemove', (event) => {
+                        const mouseX = event.clientX
+                        const mouseY = event.clientY
+
+                        const dx = mouseX - xPos
+                        const dy = mouseY - yPos
+
+                        xVel += dx * acceleration
+                        yVel += dy * acceleration
+
+                        xPos += xVel
+                        yPos += yVel
+                        ele.style.position = "absolute"
+                        ele.style.pointerEvents = 'none'
+                        ele.style.left = `${mouseX - ele.offsetWidth / 2}px`
+                        ele.style.top = `${mouseY - ele.offsetWidth / 2}px`
+
+                    })
                     resolve(ele) // Resolve with the clicked element
+                    document.removeEventListener("mousedown", rightClickListener)
                     ele.removeEventListener("click", clickHandler) // Remove listener after selection
                 }
                 ele.addEventListener("click", clickHandler)
@@ -177,9 +203,12 @@ class GameCoordinator {
         const deselectShip =  (e) => {
             if (e.key === "d" || e.key === "D") {
                 //event listener cleanup
-                document.removeEventListener("mousedown", rightClickListener);
+                document.removeEventListener("mousedown", rightClickListener)
+                selectedShip.classList.remove("selected")
+                document.removeEventListener("keydown", deselectShip)
+
                 // this.#playerShips.forEach((x) => x["ui"].remove("click", selectElement))
-                document.removeEventListener("keydown", deselectShip);
+                
                 //restart playerSelection Process
                 this.#isActiveShipSelection = true
                 this.#playerShipPlacement(unselectedShips)
@@ -199,16 +228,24 @@ class GameCoordinator {
         const selectedShip = await Promise.race(shipPromiseList)
         selectedShip.classList.add("selected")
 
-        //TODO notify user to ship selection controls:
-        //right clicking to rotate ship
-        //presss d to selected current ship, restart selection (recursion)
-        
-        document.addEventListener("mousedown", (event) => {
+        const rightClickListener =  (event) => {
             if (event.button === 2) {  
                 orientation_index = (orientation_index + 1) % ORIENTATIONS.length
-                selectedShip["ui"].style.transform = `rotate(${ORIENTATIONS[orientation_index]}deg)`
+                selectedShip.style.transformOrigin = 'center center';
+                selectedShip.style.transform = `rotate(${ORIENTATIONS[orientation_index]}deg)`
             }
-        });
+        }
+
+        //TODO notify user to ship selection controls:
+        //TODO right clicking to rotate ship
+        //TODO press d to selected current ship, restart selection (recursion)
+        
+
+        document.addEventListener('contextmenu', (event) => {
+            event.preventDefault()         
+        })
+        
+       
         
         document.addEventListener("keydown", (e) => deselectShip(e))
         console.log(this.#isActiveShipSelection)
@@ -225,6 +262,7 @@ class GameCoordinator {
         this.#placeShip(this.#player, selectedShip, [selectedCell.dataset.x, selectedCell.dataset.y])
         
         //ship placement success
+        document.removeEventListener("mousedown", rightClickListener)
         document.removeEventListener("keydown", deselectShip)
         unselectedShips = unselectedShips.filter((x) => x["ui"].container != selectedShip)
         selectedShip.classList.remove("selected")
@@ -233,6 +271,11 @@ class GameCoordinator {
         this.#playerShipPlacement(unselectedShips)
     }
     
+    #popup() {
+
+    }
+
+
     #placeShip(player, ship, coords, orientation) {
         if (player === "p") {
             const event = {
