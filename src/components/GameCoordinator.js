@@ -149,24 +149,26 @@ class GameCoordinator {
     gameLoop() {
         //ship placement process
             //while there are unplaced ships, continue prompting the user to place them
-        let unplaced = JSON.parse(JSON.stringify(this.#playerShips))
-        while (unplaced) {
+            let unplaced = [...this.#playerShips]
             this.#playerShipPlacement(unplaced)
+            
         }
         
-    }
-    
-    async #playerShipPlacement() {
-        
+    async #playerShipPlacement(unselectedShips) {
+        this.#isActiveShipSelection = true
+        if (!unselectedShips)
+            return
         //TODO notify the user to select a ship
-        this.#playerShips.forEach((x) => x.classList.remove("selected"))
+        unselectedShips.forEach((x) => {
+            x["ui"].container.classList.remove("selected")
+        })
         
         
         const selectElement = (ele) => {
             return new Promise((resolve) => {
                 const clickHandler = () => {
-                    resolve(ele); // Resolve with the clicked element
-                    ele.removeEventListener("click", clickHandler); // Remove listener after selection
+                    resolve(ele) // Resolve with the clicked element
+                    ele.removeEventListener("click", clickHandler) // Remove listener after selection
                 }
                 ele.addEventListener("click", clickHandler)
             })
@@ -180,7 +182,7 @@ class GameCoordinator {
                 document.removeEventListener("keydown", deselectShip);
                 //restart playerSelection Process
                 this.#isActiveShipSelection = true
-                this.#playerShipPlacement()
+                this.#playerShipPlacement(unselectedShips)
             }
         }
         
@@ -188,13 +190,15 @@ class GameCoordinator {
         
         //wait until the user selects a ship
         //get 1st ship to be clicked
-        const shipPromiseList = this.#playerShips.map((x) => selectElement(x["ui"]))
+
+        const shipPromiseList = unselectedShips.map((x) => selectElement(x["ui"].container))
         
         let ORIENTATIONS = [0, 90, 180, 270]
         let orientation_index = 1
         
         const selectedShip = await Promise.race(shipPromiseList)
-        selectedShip["ui"].classList.add("selected")
+        selectedShip.classList.add("selected")
+
         //TODO notify user to ship selection controls:
         //right clicking to rotate ship
         //presss d to selected current ship, restart selection (recursion)
@@ -207,11 +211,10 @@ class GameCoordinator {
         });
         
         document.addEventListener("keydown", (e) => deselectShip(e))
-        
+        console.log(this.#isActiveShipSelection)
         //ship selection is over for current ship
         if (!this.#isActiveShipSelection)
             return
-        
         //TODO notify the user to select a cell
         
         //selected ship will be placed on the cell the mouse is over and if the cell is clicked
@@ -219,13 +222,15 @@ class GameCoordinator {
         //TODO have a silhouette of where the ship will be
         const cellPromiseList = [...this.playerUIBoard.children].map((x) => selectElement(x))
         const selectedCell = await Promise.race(cellPromiseList)
-        
-        this.#placeShip(this.#player, selectedShip, [selectedCell["ui"].x, selectedCell["ui"].y])
+        this.#placeShip(this.#player, selectedShip, [selectedCell.dataset.x, selectedCell.dataset.y])
         
         //ship placement success
-        document.removeEventListener("keydown", deselectShip);
+        document.removeEventListener("keydown", deselectShip)
+        unselectedShips = unselectedShips.filter((x) => x["ui"].container != selectedShip)
+        selectedShip.classList.remove("selected")
         this.#isActiveShipSelection = false
-        
+        console.log(unselectedShips)
+        this.#playerShipPlacement(unselectedShips)
     }
     
     #placeShip(player, ship, coords, orientation) {
