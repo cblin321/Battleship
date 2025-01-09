@@ -136,7 +136,7 @@ class GameCoordinator {
             if (event.player.playerType ==="p") {
                 if (event.result) {
                     //TODO display placed ship
-                    console.log(event.result)
+                    // console.log(event.result)
                 } else {
                     //TODO notify the user of error
                     //TODO deselect ship
@@ -250,6 +250,11 @@ class GameCoordinator {
             document.addEventListener('mousemove', followMouse)
             return followMouse
         }
+
+        const cellSillhouette = () => {
+            
+        }
+
         const followingFunc = wrapper(selectedShip)
         selectedShip.classList.add("selected")
         document.addEventListener("mousedown", rightClickListener)
@@ -291,7 +296,7 @@ class GameCoordinator {
         const selectedCell = await Promise.race(cellPromiseList)
         console.log(selectedCell)
 
-        const placementSuccess = this.#placeShip(this.#player, selectedShip, [selectedCell.dataset.x, selectedCell.dataset.y], orientation)
+        const placementSuccess = this.#placeShip(this.#player, selectedShip, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)], orientation)
         //ship placement success
         document.removeEventListener("contextmenu", preventDefault)
         document.removeEventListener("mousedown", rightClickListener)
@@ -331,7 +336,7 @@ class GameCoordinator {
                 "coords": coords,
                 "orientation": orientation
             }
-            console.log(event)
+            // console.log(event)
             this.#observer.placeShip(player, event)
             return event.result
         }

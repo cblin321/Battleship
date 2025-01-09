@@ -21,7 +21,7 @@ class GameMediator {
     }
 
     placeShip(player, event) {
-        event.result = player.placeShip(event.coords)
+        event.result = player.placeShip(event)
         this.notifyObservers(event)
     }
 

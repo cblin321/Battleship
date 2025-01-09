@@ -16,6 +16,7 @@ class Gameboard {
     */
     placeShip(ship, coords, orientation) {
         if (!this.#isInBounds(ship, coords, orientation)) {
+            console.log("fdjslk")
             return false
         }
 

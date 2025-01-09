@@ -14,7 +14,7 @@ class Player {
 
     placeShip(event) {
 
-            return this.#gameBoard.placeShip(event.ship, event.coords, event.orientation)
+            return this.#gameBoard.placeShip(event.ship["game_logic"], event.coords, event.orientation)
     }
 
     recieveAttack(coords) {
