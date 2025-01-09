@@ -94,7 +94,7 @@ class GameCoordinator {
             }
         this.playerUIBoard.classList.add("ui-board")
         this.computerUIBoard.classList.add("ui-board")
-        
+        console.log(this.playerUIBoard.children)
     }
 
     /**
@@ -221,7 +221,7 @@ class GameCoordinator {
         const rightClickListener =  (event) => {
             if (event.button === 2) {  
                 rotation_count++
-                selectedShip.style.transition = "transform 0.1s ease"
+                selectedShip.style.transition = "transform 0.08s ease"
                 selectedShip.style.transformOrigin = 'calc(var(--cell-size) / 2) calc(var(--cell-size) / 2)'
                 selectedShip.style.transform = `rotate(${90 * rotation_count}deg)`
                 orientation = orientationMapping[(rotation_count % 4) + 1]
@@ -251,8 +251,20 @@ class GameCoordinator {
             return followMouse
         }
 
-        const cellSillhouette = () => {
-            
+        const cellSillhouette = (e) => {
+            //apply a class to the cells that the ship will occupy
+            switch (orientation) {
+                // y = i, j = x
+                case "down":
+                    for (let i = parseInt(e.target.dataset.y); i < this.BOARD_SIZE; i++)
+                        this.playerUIBoard.children[(i - 1) * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add("selected")
+                case "up":
+                    for (let i = parseInt(e.target.dataset.y); i < this.BOARD_SIZE; i++)
+                        this.playerUIBoard.children[(i - 1) * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add("selected")
+                case "left":
+
+                case "right":
+            }
         }
 
         const followingFunc = wrapper(selectedShip)
@@ -267,6 +279,7 @@ class GameCoordinator {
                 document.removeEventListener("mousemove", followingFunc) // Remove listener after selection
                 selectedShip.style.position = "static"
                 document.removeEventListener("contextmenu", preventDefault)
+                selectedShip.style.transform = `rotate(0deg)`
                 //restart playerSelection Process
                 this.#isActiveShipSelection = true
                 this.#playerShipPlacement(unselectedShips)

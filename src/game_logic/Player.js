@@ -1,10 +1,10 @@
 import Gameboard from "./Gameboard"
 class Player {
     playerType
-    #gameBoard
+    gameBoard
     constructor(type, sideLength) {
         this.playerType = type
-        this.#gameBoard = new Gameboard(sideLength)
+        this.gameBoard = new Gameboard(sideLength)
     }
 
     update(event) {
@@ -14,7 +14,7 @@ class Player {
 
     placeShip(event) {
 
-            return this.#gameBoard.placeShip(event.ship["game_logic"], event.coords, event.orientation)
+            return this.gameBoard.placeShip(event.ship["game_logic"], event.coords, event.orientation)
     }
 
     recieveAttack(coords) {

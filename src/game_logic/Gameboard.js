@@ -15,7 +15,7 @@ class Gameboard {
      * @returns true if the ship was placed, false otherwise
     */
     placeShip(ship, coords, orientation) {
-        if (!this.#isInBounds(ship, coords, orientation)) {
+        if (!this.isInBounds(ship, coords, orientation)) {
             console.log("fdjslk")
             return false
         }
@@ -62,7 +62,7 @@ class Gameboard {
      * @param {*} orientation 
      * @returns 
      */
-    #isInBounds(ship, coords, orientation) {
+    isInBounds(ship, coords, orientation) {
         //TODO overlapping ships
         switch(orientation) {
             case "left":
