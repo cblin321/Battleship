@@ -34,8 +34,15 @@ class GameCoordinator {
         playerShipContainer.classList.add("ship-container")
         computerShipContainer.classList.add("ship-container")
         this.#createUIBoardElement()
-        this.#computerShips.forEach(x => computerShipContainer.appendChild(x["ui"].container))
-        this.#playerShips.forEach(x => playerShipContainer.appendChild(x["ui"].container))
+        this.#computerShips.forEach((x, i) => {
+            x["ui"].container.dataset.index = i
+            computerShipContainer.appendChild(x["ui"].container)
+        }
+    )
+        this.#playerShips.forEach((x, i) => {
+            x["ui"].container.dataset.index = i
+            playerShipContainer.appendChild(x["ui"].container)
+        })
     }
 
     #playerShot = (e) => {
@@ -94,7 +101,7 @@ class GameCoordinator {
      * Updates UI based on game logic
      * @param {Object} event 
      */
-    #update(event) {
+    update(event) {
         if (event.event_type === "attack") {
             if (this.#isPlayerTurn) {
                 switch (event.result) {
@@ -150,6 +157,7 @@ class GameCoordinator {
     gameLoop() {
         //ship placement process
             //while there are unplaced ships, continue prompting the user to place them
+            this.#isPlayerTurn = ""
             let unplaced = [...this.#playerShips]
             this.#playerShipPlacement(unplaced)
             
@@ -177,20 +185,6 @@ class GameCoordinator {
             
         }
         
-        //TODO finish
-        const deselectShip =  (e) => {
-            if (e.key === "d" || e.key === "D") {
-                //event listener cleanup
-                document.removeEventListener("mousedown", rightClickListener)
-                selectedShip.classList.remove("selected")
-                document.removeEventListener("keydown", deselectShip)
-                e.removeEventListener("click", clickHandler) // Remove listener after selection
-                
-                //restart playerSelection Process
-                this.#isActiveShipSelection = true
-                this.#playerShipPlacement(unselectedShips)
-            }
-        }
         
         
         
@@ -245,6 +239,19 @@ class GameCoordinator {
         const followingFunc = wrapper(selectedShip)
         selectedShip.classList.add("selected")
         document.addEventListener("mousedown", rightClickListener)
+        const deselectShip =  (e) => {
+            if (e.key === "d" || e.key === "D") {
+                //event listener cleanup
+                document.removeEventListener("mousedown", rightClickListener)
+                selectedShip.classList.remove("selected")
+                document.removeEventListener("keydown", deselectShip)
+                document.removeEventListener("mousemove", followingFunc) // Remove listener after selection
+                selectedShip.style.position = "static"
+                //restart playerSelection Process
+                this.#isActiveShipSelection = true
+                this.#playerShipPlacement(unselectedShips)
+            }
+        }
         //TODO event listener cleanup
         //TODO notify user to ship selection controls:
         //TODO right clicking to rotate ship
@@ -290,15 +297,16 @@ class GameCoordinator {
 
 
     #placeShip(player, ship, coords, orientation) {
-        if (player === "p") {
+        if (player.playerType === "p") {
             const event = {
+                "event_type": "place_ship",
                 "player": player, 
                 "ship": ship,
                 "coords": coords,
                 "orientation": orientation
             }
             console.log(event)
-            this.#observer.placeShip(event)
+            this.#observer.placeShip(player, event)
         }
         const event = {
             "player": player, 
@@ -306,8 +314,10 @@ class GameCoordinator {
             "coords": coords,
             "orientation": orientation
         }
-        console.log(event)
-    
+        console.log(ship)
+        console.log(this.#playerShips)
+        ship = this.#playerShips[ship.dataset.index]
+        console.log(ship)
     }
     
 }

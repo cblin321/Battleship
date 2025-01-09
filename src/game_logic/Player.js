@@ -12,11 +12,16 @@ class Player {
         //recieve attack
     }
 
-    placeShip(coords) {
-        return this.#gameBoard.placeShip(coords)
+    placeShip(event) {
+
+            return this.#gameBoard.placeShip(event.ship, event.coords, event.orientation)
     }
 
     recieveAttack(coords) {
+
+    }
+
+    update(event) {
 
     }
 

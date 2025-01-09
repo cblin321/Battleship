@@ -131,6 +131,10 @@ class Gameboard {
         }
     }
 
+    update(event) {
+
+    }
+
 }
 
 export default Gameboard

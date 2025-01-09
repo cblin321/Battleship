@@ -8,7 +8,11 @@ class GameMediator {
     }
 
     notifyObservers(event) {
-        this.#observers.forEach(x => x.update(event))
+        this.#observers.forEach(x => {
+            // console.log(x)
+            // console.log(x.update)
+            x.update(event)
+        })
     }
 
     playerShot(player, event) {
