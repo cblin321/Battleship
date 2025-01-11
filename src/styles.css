@@ -12,8 +12,8 @@ html {
     font-family: "Jersey 10";
 }
 
-.computer-cell .selected {
-    
+.player-cell.selected {
+    background-color: green;;
 }
 
   

@@ -136,7 +136,6 @@ class GameCoordinator {
             if (event.player.playerType ==="p") {
                 if (event.result) {
                     //TODO display placed ship
-                    // console.log(event.result)
                 } else {
                     //TODO notify the user of error
                     //TODO deselect ship
@@ -144,7 +143,7 @@ class GameCoordinator {
                     event.ship.ui.container.style.position = "static"
                     event.ship.ui.container.style.transition = "none"
                     event.ship.ui.container.style.transform = `rotate(0deg)`
-                    event.ship.ui.container.style.pointerEvents = "auto"
+                    event.ship.ui.container.style.pointerEvents = "auto";
                 }
             }
         }
@@ -169,10 +168,17 @@ class GameCoordinator {
     }
     
     async #playerShipPlacement(unselectedShips) {        
+        const clearCells = () => {
+            [...this.playerUIBoard.children].forEach(x => {
+                x.classList.remove("selected")
+            })
+        }
         const preventDefault = (event) => {
             event.preventDefault()         
     
         }
+
+        clearCells()
         
         this.#isActiveShipSelection = true
         if (!unselectedShips)
@@ -225,6 +231,7 @@ class GameCoordinator {
                 selectedShip.style.transformOrigin = 'calc(var(--cell-size) / 2) calc(var(--cell-size) / 2)'
                 selectedShip.style.transform = `rotate(${90 * rotation_count}deg)`
                 orientation = orientationMapping[(rotation_count % 4) + 1]
+                //TODO update sillhouette if over
             }
         }
         
@@ -251,19 +258,32 @@ class GameCoordinator {
             return followMouse
         }
 
+
         const cellSillhouette = (e) => {
             //apply a class to the cells that the ship will occupy
+            const startCoord = orientation === "down" || orientation === "up" ? parseInt(e.target.dataset.y) : parseInt(e.target.dataset.x)   
+            const endpoint = orientation === "down" || orientation === "right" ? Math.min(this.BOARD_SIZE, startCoord + this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length) 
+            : Math.max(0, startCoord - this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length) 
+            // console.log(this.#playerShips[parseInt(selectedShip.dataset.index)].length)
             switch (orientation) {
                 // y = i, j = x
                 case "down":
-                    for (let i = parseInt(e.target.dataset.y); i < this.BOARD_SIZE; i++)
-                        this.playerUIBoard.children[(i - 1) * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add("selected")
+                    for (let i = parseInt(e.target.dataset.y); i < endpoint; i++) {
+                        this.playerUIBoard.children[i * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add("selected")
+                    }
+                    break
                 case "up":
-                    for (let i = parseInt(e.target.dataset.y); i < this.BOARD_SIZE; i++)
-                        this.playerUIBoard.children[(i - 1) * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add("selected")
+                    for (let i = parseInt(e.target.dataset.y); i >= endpoint; i--)
+                        this.playerUIBoard.children[i * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add("selected")
+                    break
                 case "left":
-
+                    for (let i = parseInt(e.target.dataset.x); i >= endpoint; i--)
+                        this.playerUIBoard.children[parseInt(e.target.dataset.y) * this.BOARD_SIZE + i].classList.add("selected")
+                    break
                 case "right":
+                    for (let i = parseInt(e.target.dataset.x); i < endpoint; i++)
+                        this.playerUIBoard.children[parseInt(e.target.dataset.y) * this.BOARD_SIZE + i].classList.add("selected")
+                    break
             }
         }
 
@@ -283,7 +303,9 @@ class GameCoordinator {
                 //restart playerSelection Process
                 this.#isActiveShipSelection = true
                 this.#playerShipPlacement(unselectedShips)
-                selectedShip.style.pointerEvents = "auto"
+                selectedShip.style.pointerEvents = "auto";
+                [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
+                [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells))
             }
         }
         //TODO event listener cleanup
@@ -304,7 +326,8 @@ class GameCoordinator {
         
         //selected ship will be placed on the cell the mouse is over and if the cell is clicked
         
-        //TODO have a silhouette of where the ship will be
+        [...this.playerUIBoard.children].forEach(x => x.addEventListener("mouseover", cellSillhouette));
+        [...this.playerUIBoard.children].forEach(x => x.addEventListener("mouseleave", clearCells))
         const cellPromiseList = [...this.playerUIBoard.children].map((x) => selectElement(x))
         const selectedCell = await Promise.race(cellPromiseList)
         console.log(selectedCell)
@@ -314,7 +337,9 @@ class GameCoordinator {
         document.removeEventListener("contextmenu", preventDefault)
         document.removeEventListener("mousedown", rightClickListener)
         document.removeEventListener("keydown", deselectShip)
-        document.removeEventListener('mousemove', followingFunc)
+        document.removeEventListener('mousemove', followingFunc);
+        [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
+        [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells))
         if (placementSuccess)
             unselectedShips = unselectedShips.filter((x) => x["ui"].container != selectedShip)
         selectedShip.classList.remove("selected")
