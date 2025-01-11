@@ -12,8 +12,16 @@ html {
     font-family: "Jersey 10";
 }
 
-.player-cell.selected {
+.player-cell.invalid-sillhouette {
+    background-color: red;
+}
+
+.player-cell.valid-sillhouette {
     background-color: green;;
+}
+
+.player-cell.placed {
+    background-color: purple;
 }
 
   

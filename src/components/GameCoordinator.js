@@ -135,10 +135,44 @@ class GameCoordinator {
         if (event.event_type === "place_ship") {
             if (event.player.playerType ==="p") {
                 if (event.result) {
+                    const clearCells = () => {
+                        [...this.playerUIBoard.children].forEach(x => {
+                            x.classList.remove("invalid-sillhouette")
+                            x.classList.remove("valid-sillhouette")
+                        })
+                    }
                     //TODO display placed ship
+                    console.log(event)
+                    const orientation = event.orientation
+                    const startCoord = orientation === "down" || orientation === "up" ? event.coords[1] : event.coords[0]   
+                    const endpoint = orientation === "down" || orientation === "right" ? Math.min(this.BOARD_SIZE, startCoord + event.ship.game_logic.length) 
+                    : Math.max(0, startCoord - event.ship.game_logic.length + 1) 
+                    clearCells()
+                    switch (orientation) {
+                        // y = i, j = x
+                        case "down":
+                            for (let i = event.coords[1]; i < endpoint; i++) 
+                                this.playerUIBoard.children[i * this.BOARD_SIZE + event.coords[0]].classList.add("placed")
+                            break
+                        case "up":
+                            for (let i = event.coords[1]; i >= endpoint; i--)
+                                this.playerUIBoard.children[i * this.BOARD_SIZE + event.coords[0]].classList.add("placed")
+                            break
+                        case "left":
+                            for (let i = event.coords[0]; i >= endpoint; i--)
+                                this.playerUIBoard.children[event.coords[1] * this.BOARD_SIZE + i].classList.add("placed")
+                            break
+                        case "right":
+                            for (let i = event.coords[0]; i < endpoint; i++)
+                                this.playerUIBoard.children[event.coords[1] * this.BOARD_SIZE + i].classList.add("placed")
+                            break
+                    }
+                    event.ship.ui.removeBorder()
+
+                    //TODO make sure game logic updaating appropraitely
+
                 } else {
                     //TODO notify the user of error
-                    //TODO deselect ship
                     console.log(event)
                     event.ship.ui.container.style.position = "static"
                     event.ship.ui.container.style.transition = "none"
@@ -167,10 +201,15 @@ class GameCoordinator {
         
     }
     
-    async #playerShipPlacement(unselectedShips) {        
+    async #playerShipPlacement(unselectedShips) {                
+        const currHoveredCell = {
+            x: undefined, 
+            y: undefined
+        }
         const clearCells = () => {
             [...this.playerUIBoard.children].forEach(x => {
-                x.classList.remove("selected")
+                x.classList.remove("invalid-sillhouette")
+                x.classList.remove("valid-sillhouette")
             })
         }
         const preventDefault = (event) => {
@@ -184,6 +223,7 @@ class GameCoordinator {
         if (!unselectedShips)
             return
         //TODO notify the user to select a ship
+        let popup = this.#popup("Click on a ship to select")
         unselectedShips.forEach((x) => {
             x["ui"].container.classList.remove("selected")
         })
@@ -214,9 +254,10 @@ class GameCoordinator {
         let rotation_count = 0
         
         const selectedShip = await Promise.race(shipPromiseList)
-        console.log(selectedShip)
         let orientation = "down"
+        this.#closePopup(popup)
 
+        popup = this.#popup("Drag ship to valid cell on board and click to place \nRmb to rotate, d to deselect ship")
         const orientationMapping = {
             1: "down",
             2: "left",
@@ -231,7 +272,39 @@ class GameCoordinator {
                 selectedShip.style.transformOrigin = 'calc(var(--cell-size) / 2) calc(var(--cell-size) / 2)'
                 selectedShip.style.transform = `rotate(${90 * rotation_count}deg)`
                 orientation = orientationMapping[(rotation_count % 4) + 1]
-                //TODO update sillhouette if over
+                if (currHoveredCell.x === undefined || currHoveredCell.y === undefined)
+                    return
+                const startCoord = orientation === "down" || orientation === "up" ? currHoveredCell.y : currHoveredCell.x   
+                const endpoint = orientation === "down" || orientation === "right" ? Math.min(this.BOARD_SIZE, startCoord + this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length) 
+                : Math.max(0, startCoord - this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length + 1) 
+                clearCells()
+                let classtoApply
+                if ( orientation === "down" || orientation === "right")
+                    classtoApply = this.BOARD_SIZE >= startCoord + this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length ? "valid-sillhouette" : "invalid-sillhouette"
+                else 
+                    classtoApply = 0 <= startCoord - this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length + 1 ? "valid-sillhouette" : "invalid-sillhouette"
+                switch (orientation) {
+                    // y = i, j = x
+                    case "down":
+                        for (let i = currHoveredCell.y; i < endpoint; i++) 
+                            this.playerUIBoard.children[i * this.BOARD_SIZE + currHoveredCell.x].classList.add(classtoApply)
+                        
+                        break
+                    case "up":
+                        for (let i = currHoveredCell.y; i >= endpoint; i--)
+                            this.playerUIBoard.children[i * this.BOARD_SIZE + currHoveredCell.x].classList.add(classtoApply)
+                        break
+                    case "left":
+                        for (let i = currHoveredCell.x; i >= endpoint; i--)
+                            this.playerUIBoard.children[currHoveredCell.y * this.BOARD_SIZE + i].classList.add(classtoApply)
+                        break
+                    case "right":
+                        for (let i = currHoveredCell.x; i < endpoint; i++)
+                            this.playerUIBoard.children[currHoveredCell.y * this.BOARD_SIZE + i].classList.add(classtoApply)
+                        break
+
+
+                }
             }
         }
         
@@ -261,28 +334,35 @@ class GameCoordinator {
 
         const cellSillhouette = (e) => {
             //apply a class to the cells that the ship will occupy
+            currHoveredCell.x = parseInt(e.target.dataset.x) 
+            currHoveredCell.y = parseInt(e.target.dataset.y) 
             const startCoord = orientation === "down" || orientation === "up" ? parseInt(e.target.dataset.y) : parseInt(e.target.dataset.x)   
             const endpoint = orientation === "down" || orientation === "right" ? Math.min(this.BOARD_SIZE, startCoord + this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length) 
-            : Math.max(0, startCoord - this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length) 
-            // console.log(this.#playerShips[parseInt(selectedShip.dataset.index)].length)
+            : Math.max(0, startCoord - this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length + 1) 
+            //TODO apply different class if in bounds or not
+            let classtoApply
+            if ( orientation === "down" || orientation === "right")
+                classtoApply = this.BOARD_SIZE >= startCoord + this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length ? "valid-sillhouette" : "invalid-sillhouette"
+            else 
+                classtoApply = 0 <= startCoord - this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length + 1 ? "valid-sillhouette" : "invalid-sillhouette"
             switch (orientation) {
                 // y = i, j = x
                 case "down":
-                    for (let i = parseInt(e.target.dataset.y); i < endpoint; i++) {
-                        this.playerUIBoard.children[i * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add("selected")
-                    }
+                    for (let i = parseInt(e.target.dataset.y); i < endpoint; i++) 
+                        this.playerUIBoard.children[i * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add(classtoApply)
+                    
                     break
                 case "up":
                     for (let i = parseInt(e.target.dataset.y); i >= endpoint; i--)
-                        this.playerUIBoard.children[i * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add("selected")
+                        this.playerUIBoard.children[i * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add(classtoApply)
                     break
                 case "left":
                     for (let i = parseInt(e.target.dataset.x); i >= endpoint; i--)
-                        this.playerUIBoard.children[parseInt(e.target.dataset.y) * this.BOARD_SIZE + i].classList.add("selected")
+                        this.playerUIBoard.children[parseInt(e.target.dataset.y) * this.BOARD_SIZE + i].classList.add(classtoApply)
                     break
                 case "right":
                     for (let i = parseInt(e.target.dataset.x); i < endpoint; i++)
-                        this.playerUIBoard.children[parseInt(e.target.dataset.y) * this.BOARD_SIZE + i].classList.add("selected")
+                        this.playerUIBoard.children[parseInt(e.target.dataset.y) * this.BOARD_SIZE + i].classList.add(classtoApply)
                     break
             }
         }
@@ -306,12 +386,10 @@ class GameCoordinator {
                 selectedShip.style.pointerEvents = "auto";
                 [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
                 [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells))
+                this.#closePopup(popup)
             }
         }
         //TODO event listener cleanup
-        //TODO notify user to ship selection controls:
-            //right click to rotate ship
-            //press d to deselected current ship
         
 
         document.addEventListener('contextmenu', preventDefault)
@@ -322,7 +400,6 @@ class GameCoordinator {
         //ship selection is over for current ship
         if (!this.#isActiveShipSelection)
             return
-        //TODO notify the user to select a cell
         
         //selected ship will be placed on the cell the mouse is over and if the cell is clicked
         
@@ -340,6 +417,7 @@ class GameCoordinator {
         document.removeEventListener('mousemove', followingFunc);
         [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
         [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells))
+        this.#closePopup(popup)
         if (placementSuccess)
             unselectedShips = unselectedShips.filter((x) => x["ui"].container != selectedShip)
         selectedShip.classList.remove("selected")
@@ -357,10 +435,16 @@ class GameCoordinator {
         const popupText = document.createElement("p")
         
         popupText.textContent = message
-        popup.appendChild(message)
+        popup.appendChild(popupText)
 
         popup.classList.add("popup")
+        popup.classList.add("active")
+        document.body.appendChild(popup)
+        return popup
+    }
 
+    #closePopup(popup) {
+        document.body.removeChild(popup)
     }
 
 

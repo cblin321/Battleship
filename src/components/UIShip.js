@@ -21,6 +21,10 @@ class UIShip {
 
     }
 
+    removeBorder() {
+        this.pegs.forEach(x => x.style.border = "none")
+    }
+
 
 
 }
