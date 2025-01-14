@@ -80,10 +80,6 @@ class GameCoordinator {
                 computerCell.classList.add("computer-cell")
                 playerCell.classList.add("player-cell")
 
-                playerCell.addEventListener("click", () => {
-
-                })
-
                 computerCell.dataset.x = j
                 computerCell.dataset.y = i
                 playerCell.dataset.x = j
@@ -95,7 +91,6 @@ class GameCoordinator {
             }
         this.playerUIBoard.classList.add("ui-board")
         this.computerUIBoard.classList.add("ui-board")
-        console.log(this.playerUIBoard.children)
     }
 
     /**
@@ -109,13 +104,14 @@ class GameCoordinator {
                     case 1:
                         //player hit computer ship
                         //update UI board
-
+                        this.computerUIBoard[event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add("hit")
                     case 2:
                         //player wins
-                        
+                        this.#giveWin(this.#player)
                     default:
                         //player missed
                         //update UI board
+                        this.computerUIBoard[event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add("miss")
                     }
 
             } else {
@@ -123,12 +119,14 @@ class GameCoordinator {
                     case 1:
                         //computer hit player ship
                         //update UI board
+                        this.playerUIBoard[event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add("hit")
                     case 2:
                         //computer wins
 
                     default:
                         //computer missed
                         //update UI board
+                        this.playerUIBoard[event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add("miss")
                 }
             }
         }
@@ -181,13 +179,22 @@ class GameCoordinator {
                 console.log(event)
             }
         }
+
+        if (event.event_type === "game_win") {
+            if (event.winner === "p") {
+                //reset ships, reset uiBoard
+                this.#createUIBoardElement()
+            } else {
+
+            }
+        }
     }
 
     
     #giveWin(winner) {
         const event = {
             event_type: "game_win",
-            winner: ""
+            winner: winner.playerType
         }
         this.#observer.notifyObservers()
     }
@@ -199,6 +206,7 @@ class GameCoordinator {
         let unplaced = [...this.#playerShips]
         this.#playerShipPlacement(unplaced)
         this.#computerShipPlacement(this.#computerShips)
+        //while there is no winner continue to take shots
 
     }
 
@@ -272,7 +280,6 @@ class GameCoordinator {
         const selectElement = (ele) => {
             return new Promise((resolve) => {
                 ele.addEventListener("click", () => {
-                    console.log("fjdksafjaskl")
                     resolve(ele)
                 })
                 
@@ -420,7 +427,7 @@ class GameCoordinator {
                 this.#playerShipPlacement(unselectedShips)
                 selectedShip.style.pointerEvents = "auto";
                 [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
-                [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells))
+                [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells));
                 this.#closePopup(popup)
             }
         }
@@ -460,6 +467,31 @@ class GameCoordinator {
         console.log(unselectedShips)
         this.#playerShipPlacement(unselectedShips)
     }
+
+    async #makePlayerShot() {
+        //get where the player wants to shoot
+        const selectElement = (ele) => {
+            return new Promise((resolve) => {
+                ele.addEventListener("click", () => {
+                    resolve(ele)
+                })
+                
+            })
+            
+        }
+        const unselectedCells = this.computerUIBoard.filter()
+        const promiseList = unselectedCells.map(x => selectElement(x))
+        //integrate with game logic
+        const selectedCell = Promise.race(promiseList)
+        this.#recieveAttack(this.#computer, [parseInt(selectedCell.dataset.x, selectedCell.dataset.y)])
+        
+    }
+
+    #makeComputerShot() {
+        const unselectedCells = this.computerUIBoard.filter(x => [...x.classList].includes("miss") && [...x.classList].includes("hit"))
+        const selectedCell = unselectedCells[Math.floor(Math.random() * unselectedCells.length)]
+        this.#recieveAttack(this.#player, [parseInt(selectedCell.dataset.x, selectedCell.dataset.y)])
+    }
     
     /**
      * Pop-up to notify the user
@@ -496,7 +528,16 @@ class GameCoordinator {
         this.#observer.placeShip(player, event)
         return event.result
     }
-    
+ 
+    #recieveAttack(player, coords) {
+        const event = {
+            "event_type": "attack",
+            "player": player, 
+            "coords": coords,
+        }
+        this.#observer.recieveAttack(player, event)
+        return event.result
+    }
 }
 
 

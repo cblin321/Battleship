@@ -10,6 +10,9 @@ class Player {
     update(event) {
         //reset in event of game end
         //recieve attack
+        if (event.eventType === "game_win") {
+            
+        }
     }
 
     placeShip(event) {
@@ -21,8 +24,8 @@ class Player {
 
     }
 
-    update(event) {
-
+    reset() {
+        this.gameBoard = new Gameboard(sideLength)
     }
 
 
