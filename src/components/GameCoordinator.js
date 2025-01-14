@@ -1,3 +1,4 @@
+import Gameboard from "../game_logic/Gameboard"
 import Player from "../game_logic/Player"
 import Ship from "../game_logic/Ship"
 import GameObserver from "./GameObserver"
@@ -10,7 +11,7 @@ class GameCoordinator {
     #isActiveShipSelection
     
     #player = new Player("p", this.BOARD_SIZE)
-    #computer = new Player("c", this.BOARD_SIZE)
+    #computer = new Player("cpu", this.BOARD_SIZE)
     
     #playerShips = [{"game_logic": new Ship(5), "ui": new UIShip(5)}, 
         {"game_logic": new Ship(4), "ui": new UIShip(4)}, 
@@ -141,7 +142,6 @@ class GameCoordinator {
                             x.classList.remove("valid-sillhouette")
                         })
                     }
-                    //TODO display placed ship
                     console.log(event)
                     const orientation = event.orientation
                     const startCoord = orientation === "down" || orientation === "up" ? event.coords[1] : event.coords[0]   
@@ -169,16 +169,15 @@ class GameCoordinator {
                     }
                     event.ship.ui.removeBorder()
 
-                    //TODO make sure game logic updaating appropraitely
 
                 } else {
                     //TODO notify the user of error
-                    console.log(event)
                     event.ship.ui.container.style.position = "static"
                     event.ship.ui.container.style.transition = "none"
                     event.ship.ui.container.style.transform = `rotate(0deg)`
                     event.ship.ui.container.style.pointerEvents = "auto";
                 }
+            } else if (event.player.playerType === "cpu") {
             }
         }
     }
@@ -198,8 +197,44 @@ class GameCoordinator {
         this.#isPlayerTurn = ""
         let unplaced = [...this.#playerShips]
         this.#playerShipPlacement(unplaced)
-        
+        this.#computerShipPlacement(this.#computerShips)
     }
+
+    /**
+     * Place ships randomly
+     */
+    #computerShipPlacement(unplacedShips) {
+        while (unplacedShips.length > 0) {
+            const orientationMapping = {
+                1: "down",
+                2: "left",
+                3: "up",
+                4: "right"
+            }
+
+            let orientation = orientationMapping[Math.floor(Math.random() * 4) + 1]
+            let positions = this.#getValidPositions(unplacedShips[0]["game_logic"], orientation)
+            const coords = positions[Math.floor(Math.random() * positions.length)]
+            const result = this.#placeShip(this.#computer, unplacedShips[0]["ui"].container, coords, orientation)
+            unplacedShips.pop()
+        }
+
+    }
+
+
+    #getValidPositions(ship, orientation) {
+        const validPositions = [];
+        //highly inefficient ;PPP
+        for (let x = 0; x < 10; x++) {
+            for (let y = 0; y < 10; y++) {    
+                if (this.#computer.gameBoard.isInBounds(ship, [x, y], orientation) && !this.#computer.gameBoard.willOverlap(ship, [x, y], orientation)) 
+                    validPositions.push([x, y]);
+            }
+        }
+    
+        return validPositions;
+    }
+    
     
     async #playerShipPlacement(unselectedShips) {                
         const currHoveredCell = {
@@ -222,7 +257,6 @@ class GameCoordinator {
         this.#isActiveShipSelection = true
         if (!unselectedShips)
             return
-        //TODO notify the user to select a ship
         let popup = this.#popup("Click on a ship to select")
         unselectedShips.forEach((x) => {
             x["ui"].container.classList.remove("selected")
@@ -339,7 +373,6 @@ class GameCoordinator {
             const startCoord = orientation === "down" || orientation === "up" ? parseInt(e.target.dataset.y) : parseInt(e.target.dataset.x)   
             const endpoint = orientation === "down" || orientation === "right" ? Math.min(this.BOARD_SIZE, startCoord + this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length) 
             : Math.max(0, startCoord - this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length + 1) 
-            //TODO apply different class if in bounds or not
             let classtoApply
             if ( orientation === "down" || orientation === "right")
                 classtoApply = this.BOARD_SIZE >= startCoord + this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length ? "valid-sillhouette" : "invalid-sillhouette"
@@ -449,19 +482,17 @@ class GameCoordinator {
 
 
     #placeShip(player, ship, coords, orientation) {
-        if (player.playerType === "p") {
-            ship = this.#playerShips[ship.dataset.index]
-            const event = {
-                "event_type": "place_ship",
-                "player": player, 
-                "ship": ship,
-                "coords": coords,
-                "orientation": orientation
-            }
-            // console.log(event)
-            this.#observer.placeShip(player, event)
-            return event.result
+        ship = player.playerType === "p" ? this.#playerShips[ship.dataset.index] : this.#computerShips[ship.dataset.index] 
+        const event = {
+            "event_type": "place_ship",
+            "player": player, 
+            "ship": ship,
+            "coords": coords,
+            "orientation": orientation
         }
+        // console.log(event)
+        this.#observer.placeShip(player, event)
+        return event.result
     }
     
 }

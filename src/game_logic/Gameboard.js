@@ -23,7 +23,7 @@ class Gameboard {
         if (!this.#inBoard(coords))
             return false
 
-        if (this.#willOverlap(ship, coords, orientation)) {
+        if (this.willOverlap(ship, coords, orientation)) {
             return false
         }
 
@@ -62,8 +62,7 @@ class Gameboard {
      * @param {*} orientation 
      * @returns 
      */
-    isInBounds(ship, coords, orientation) {
-        //TODO overlapping ships
+     isInBounds(ship, coords, orientation) {
         switch(orientation) {
             case "left":
                 return 0 <= coords[0] - (ship.length - 1) 
@@ -76,7 +75,7 @@ class Gameboard {
         }
     } 
 
-    #willOverlap(ship, coords, orientation) {
+    willOverlap(ship, coords, orientation) {
         if (orientation === "down") {
             for (let i = coords[1] + (ship.length - 1); i >= coords[1] ; i--)
                     if (this.ship_grid[i][coords[0]])
