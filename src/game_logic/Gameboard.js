@@ -16,19 +16,19 @@ class Gameboard {
     */
     placeShip(ship, coords, orientation) {
         if (!this.isInBounds(ship, coords, orientation)) {
-            console.log("fdjslk")
             return false
         }
-
+        
         if (!this.#inBoard(coords))
             return false
-
+        
         if (this.willOverlap(ship, coords, orientation)) {
             return false
         }
-
-        if (this.ships.includes(ship))
+        
+        if (this.ships.includes(ship)) {
             return false
+        }
         
         this.ships.push(ship)
         this.#fillGridWithShip(ship, coords, orientation)

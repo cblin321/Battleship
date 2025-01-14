@@ -178,6 +178,7 @@ class GameCoordinator {
                     event.ship.ui.container.style.pointerEvents = "auto";
                 }
             } else if (event.player.playerType === "cpu") {
+                console.log(event)
             }
         }
     }
@@ -198,6 +199,7 @@ class GameCoordinator {
         let unplaced = [...this.#playerShips]
         this.#playerShipPlacement(unplaced)
         this.#computerShipPlacement(this.#computerShips)
+
     }
 
     /**
@@ -213,9 +215,9 @@ class GameCoordinator {
             }
 
             let orientation = orientationMapping[Math.floor(Math.random() * 4) + 1]
-            let positions = this.#getValidPositions(unplacedShips[0]["game_logic"], orientation)
+            let positions = this.#getValidPositions(unplacedShips[unplacedShips.length - 1]["game_logic"], orientation)
             const coords = positions[Math.floor(Math.random() * positions.length)]
-            const result = this.#placeShip(this.#computer, unplacedShips[0]["ui"].container, coords, orientation)
+            const result = this.#placeShip(this.#computer, unplacedShips[unplacedShips.length - 1]["ui"].container, coords, orientation)
             unplacedShips.pop()
         }
 
