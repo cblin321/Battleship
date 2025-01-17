@@ -11,8 +11,8 @@ class Player {
         //reset in event of game end
         //recieve attack
         if (event.eventType === "game_win") {
-            
-        }
+          this.reset()  
+        } 
     }
 
     placeShip(event) {

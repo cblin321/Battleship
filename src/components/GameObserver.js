@@ -15,9 +15,9 @@ class GameMediator {
         })
     }
 
-    playerShot(player, event) {
+    recieveAttack(player, event) {
         event.result = player.recieveAttack(event.coords)
-        this.notifyObservers(event) 
+        this.notifyObservers(event)
     }
 
     placeShip(player, event) {

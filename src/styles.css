@@ -32,6 +32,10 @@ html {
     background-color: purple;
 }
 
+.ship-peg.placed {
+    border: none !important;
+}
+
   
 
 body {

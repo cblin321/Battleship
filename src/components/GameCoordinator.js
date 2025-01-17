@@ -7,8 +7,8 @@ class GameCoordinator {
 
     BOARD_SIZE = 10
     
-    #isPlayerTurn
     #isActiveShipSelection
+    #winner 
     
     #player = new Player("p", this.BOARD_SIZE)
     #computer = new Player("cpu", this.BOARD_SIZE)
@@ -28,50 +28,36 @@ class GameCoordinator {
     
     playerUIBoard
     computerUIBoard 
+    boardContainer
 
     #observer = new GameObserver([this.#player, this.#computer, this])
 
-    constructor(playerShipContainer, computerShipContainer) {
+    constructor(playerShipContainer, computerShipContainer, boardContainer) {
+        console.log(playerShipContainer, computerShipContainer, boardContainer)
+        boardContainer.classList.add("board-container")
         playerShipContainer.classList.add("ship-container")
-        computerShipContainer.classList.add("ship-container")
-        this.#createUIBoardElement()
+        computerShipContainer.classList.add("ship-container");
+        [this.playerUIBoard, this.computerUIBoard] = this.#createUIBoardElement()
+        boardContainer.appendChild(this.playerUIBoard)
+        boardContainer.appendChild(this.computerUIBoard)
         this.#computerShips.forEach((x, i) => {
             x["ui"].container.dataset.index = i
             computerShipContainer.appendChild(x["ui"].container)
         }
     )
-        this.#playerShips.forEach((x, i) => {
-            x["ui"].container.dataset.index = i
-            playerShipContainer.appendChild(x["ui"].container)
-        })
-    }
+    this.#playerShips.forEach((x, i) => {
+        x["ui"].container.dataset.index = i
+        playerShipContainer.appendChild(x["ui"].container)
+    })
+    this.boardContainer = boardContainer
+}
 
-    #playerShot = (e) => {
-        if (turn) {
-            const x = e.target.x   
-            const y = e.target.y   
-            
-            const event = {
-                event_type: "attack",
-                isPlayerTurn: this.#isPlayerTurn,
-                coords: [x, y],
-                result: undefined
-            } 
-
-
-            this.#observer.playerShot(this.#computer, event)
-
-        }
-
-        e.target.removeEventListener("click", this.#playerShot)
-    }
-    
-    /**
-     * Initialize the HTML board elements
-     */
+/**
+ * Initialize the HTML board elements
+*/
     #createUIBoardElement() {
-        this.playerUIBoard = document.createElement("div")
-        this.computerUIBoard = document.createElement("div") 
+        const playerUIBoard = document.createElement("div")
+        const computerUIBoard = document.createElement("div") 
         for (let i = 0; i < this.BOARD_SIZE; i++)
             for (let j = 0; j < this.BOARD_SIZE; j++) {
                 const playerCell = document.createElement("div")
@@ -86,11 +72,18 @@ class GameCoordinator {
                 playerCell.dataset.y = i
 
                 
-                this.playerUIBoard.appendChild(playerCell)
-                this.computerUIBoard.appendChild(computerCell)
+                playerUIBoard.appendChild(playerCell)
+                computerUIBoard.appendChild(computerCell)
             }
-        this.playerUIBoard.classList.add("ui-board")
-        this.computerUIBoard.classList.add("ui-board")
+            playerUIBoard.classList.add("ui-board")
+            computerUIBoard.classList.add("ui-board")
+        return [playerUIBoard, computerUIBoard]
+    }
+
+    #resetShips() {
+        this.#playerShips.forEach(x => {
+            x.classList.remo
+        })
     }
 
     /**
@@ -99,7 +92,7 @@ class GameCoordinator {
      */
     update(event) {
         if (event.event_type === "attack") {
-            if (this.#isPlayerTurn) {
+            if (event.player.playerType === "p") {
                 switch (event.result) {
                     case 1:
                         //player hit computer ship
@@ -122,7 +115,7 @@ class GameCoordinator {
                         this.playerUIBoard[event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add("hit")
                     case 2:
                         //computer wins
-
+                        this.#giveWin(this.#computer)
                     default:
                         //computer missed
                         //update UI board
@@ -169,7 +162,6 @@ class GameCoordinator {
 
 
                 } else {
-                    //TODO notify the user of error
                     event.ship.ui.container.style.position = "static"
                     event.ship.ui.container.style.transition = "none"
                     event.ship.ui.container.style.transform = `rotate(0deg)`
@@ -181,12 +173,19 @@ class GameCoordinator {
         }
 
         if (event.event_type === "game_win") {
-            if (event.winner === "p") {
-                //reset ships, reset uiBoard
-                this.#createUIBoardElement()
-            } else {
-
-            }
+                this.#winner = event.winner
+                
+                //reset uiBoard
+                const [playerUIBoard, computerUIBoard] = this.#createUIBoardElement()
+                this.boardContainer.replaceChild(this.playerUIBoard, playerUIBoard)
+                this.playerUIBoard = playerUIBoard
+                
+                this.boardContainer.replaceChild(this.computerUIBoard, computerUIBoard)
+                this.computerUIBoard = computerUIBoard
+                
+                //reset ships
+                
+                
         }
     }
 
@@ -202,12 +201,16 @@ class GameCoordinator {
     gameLoop() {
         //ship placement process
         //while there are unplaced ships, continue prompting the user to place them
-        this.#isPlayerTurn = ""
         let unplaced = [...this.#playerShips]
-        this.#playerShipPlacement(unplaced)
-        this.#computerShipPlacement(this.#computerShips)
-        //while there is no winner continue to take shots
-
+        this.#playerShipPlacement(unplaced).then(x => {
+            this.#computerShipPlacement(this.#computerShips)
+            //while there is no winner continue to take shots
+            while (!this.#winner) {
+                console.log(unplaced)
+                this.#makePlayerShot()
+                this.#makeComputerShot()
+            }
+        })
     }
 
     /**
@@ -265,8 +268,11 @@ class GameCoordinator {
         clearCells()
         
         this.#isActiveShipSelection = true
-        if (!unselectedShips)
-            return
+        if (unselectedShips.length === 0) {
+            return new Promise((resolve) => {
+                resolve()
+            })
+        }
         let popup = this.#popup("Click on a ship to select")
         unselectedShips.forEach((x) => {
             x["ui"].container.classList.remove("selected")
@@ -424,7 +430,7 @@ class GameCoordinator {
                 selectedShip.style.transform = `rotate(0deg)`
                 //restart playerSelection Process
                 this.#isActiveShipSelection = true
-                this.#playerShipPlacement(unselectedShips)
+                return this.#playerShipPlacement(unselectedShips)
                 selectedShip.style.pointerEvents = "auto";
                 [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
                 [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells));
@@ -465,11 +471,12 @@ class GameCoordinator {
         selectedShip.classList.remove("selected")
         this.#isActiveShipSelection = false
         console.log(unselectedShips)
-        this.#playerShipPlacement(unselectedShips)
+        return this.#playerShipPlacement(unselectedShips)
     }
 
     async #makePlayerShot() {
         //get where the player wants to shoot
+        let popup = this.#popup("Select a square to shoot")
         const selectElement = (ele) => {
             return new Promise((resolve) => {
                 ele.addEventListener("click", () => {
@@ -477,18 +484,25 @@ class GameCoordinator {
                 })
                 
             })
-            
-        }
-        const unselectedCells = this.computerUIBoard.filter()
+
+
+    }
+        const unselectedCells = [...this.computerUIBoard.children].filter(x => {
+            let classlist = [...x.classList]
+            return !(classlist.includes("hit") || classlist.includes("miss")) 
+        })
+        console.log(unselectedCells)
         const promiseList = unselectedCells.map(x => selectElement(x))
+        console.log(promiseList)
         //integrate with game logic
-        const selectedCell = Promise.race(promiseList)
-        this.#recieveAttack(this.#computer, [parseInt(selectedCell.dataset.x, selectedCell.dataset.y)])
+        const selectedCell = await Promise.race(promiseList)
+        const result = this.#recieveAttack(this.#computer, [parseInt(selectedCell.dataset.x, selectedCell.dataset.y)])
+        this.#closePopup(popup)
         
     }
 
     #makeComputerShot() {
-        const unselectedCells = this.computerUIBoard.filter(x => [...x.classList].includes("miss") && [...x.classList].includes("hit"))
+        const unselectedCells = [...this.computerUIBoard.children].filter(x => [...x.classList].includes("miss") && [...x.classList].includes("hit"))
         const selectedCell = unselectedCells[Math.floor(Math.random() * unselectedCells.length)]
         this.#recieveAttack(this.#player, [parseInt(selectedCell.dataset.x, selectedCell.dataset.y)])
     }
