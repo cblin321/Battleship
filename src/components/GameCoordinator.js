@@ -99,13 +99,16 @@ class GameCoordinator {
                         //player hit computer ship
                         //update UI board
                         [...this.computerUIBoard.children][event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add("hit")
+                        break
                     case 2:
                         //player wins
                         this.#giveWin(this.#player)
+                        break
                     default:
                         //player missed
                         //update UI board
                         [...this.computerUIBoard.children][event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add("miss")
+                        break
                     }
 
             } else {
@@ -114,13 +117,16 @@ class GameCoordinator {
                         //computer hit player ship
                         //update UI board
                         [...this.playerUIBoard.children][event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add("hit")
+                        break
                     case 2:
                         //computer wins
                         this.#giveWin(this.#computer)
+                        break
                     default:
                         //computer missed
                         //update UI board
                         [...this.playerUIBoard.children][event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add("miss")
+                        break
                 }
             }
         }
@@ -214,8 +220,7 @@ class GameCoordinator {
         if (this.#winner)
             return
         this.#makePlayerShot().then(x =>{
-            console.log(x)
-            // this.#makeComputerShot()
+            this.#makeComputerShot()
             this.#takeTurns()
         })
     }
@@ -509,14 +514,14 @@ class GameCoordinator {
         const unselectedCells = [...this.computerUIBoard.children].filter(x => !([...x.classList].includes("miss") || [...x.classList].includes("hit")))
         const selectedCell = unselectedCells[Math.floor(Math.random() * unselectedCells.length)]
         console.log(selectedCell)
-        this.#recieveAttack(this.#player, [parseInt(selectedCell.dataset.x, selectedCell.dataset.y)])
+        this.#recieveAttack(this.#player, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)])
     }
     
     /**
-     * Pop-up to notify the user
+     * Change instruction text meant to notify the user
      * @param {String} message the message to display to user
      */
-    #popup(message) {
+    #changeText(textEle) {
         const popup = document.createElement("div")
         const popupText = document.createElement("p")
         

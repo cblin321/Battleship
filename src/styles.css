@@ -20,13 +20,21 @@ html {
     background-color: green;;
 }
 
-.player-cell.hit, .computer-cell.hit {
-    background-color: red;
+.player-cell.hit {
+    background-color: red !important;
+}
+
+.computer-cell.hit {
+    background-color: green !important;
 }
 
 .player-cell.miss, .computer-cell.miss {
     background-color: orange;
 }
+
+.player-cell.hit, .ship-peg, .computer-cell, .player-cell.miss {
+    transition: all .5s;
+} 
 
 .player-cell.placed {
     background-color: purple;

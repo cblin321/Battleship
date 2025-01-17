@@ -5,6 +5,7 @@ const playerShipContainer = document.createElement("div")
 const computerShipContainer = document.createElement("div") 
 const playerShipLabel = document.createElement("p")
 const boardContainer = document.createElement("div")
+const instructionText = document.createElement("p")
 
 const GC = new GameCoordinator(playerShipContainer, computerShipContainer, boardContainer)
 
