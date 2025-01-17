@@ -21,7 +21,7 @@ class Player {
     }
 
     recieveAttack(coords) {
-
+            return this.gameBoard.recieveAttack(coords)
     }
 
     reset() {
