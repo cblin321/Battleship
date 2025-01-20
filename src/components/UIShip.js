@@ -22,7 +22,7 @@ class UIShip {
     }
 
     removeBorder() {
-        this.pegs.forEach(x => x.style.border = "none")
+        this.pegs.forEach(x => x.classList.add("placed"))
     }
 
 
