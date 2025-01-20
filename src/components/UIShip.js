@@ -25,6 +25,11 @@ class UIShip {
         this.pegs.forEach(x => x.classList.add("placed"))
     }
 
+    reset(newContainer) {
+        this.container.replaceWith(newContainer)
+        this.container = newContainer
+    }
+
 
 
 }

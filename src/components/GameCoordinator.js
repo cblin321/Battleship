@@ -82,12 +82,6 @@ class GameCoordinator {
         return [playerUIBoard, computerUIBoard]
     }
 
-    #resetShips() {
-        this.#playerShips.forEach(x => {
-            x.classList.remo
-        })
-    }
-
     /**
      * Updates UI based on game logic
      * @param {Object} event 
@@ -193,6 +187,15 @@ class GameCoordinator {
                 this.computerUIBoard = computerUIBoard
                 
                 //reset ships
+                this.#playerShips.forEach(x => {
+                    const newShip = document.createElement("div")
+                    for (let i = 0; i < x.game_logic.length; i++) {
+                        let newPeg = document.createElement("div")
+                        newPeg.classList.add("ship-peg")
+                        newShip.appendChild(newPeg)
+                    }
+                    x.ui.reset(newShip)
+                })
                 
                 
         }
@@ -214,6 +217,8 @@ class GameCoordinator {
         this.#playerShipPlacement(unplaced).then(x => {
             this.#computerShipPlacement(this.#computerShips)
             this.#takeTurns()            
+        }).then(x => {
+            this.gameLoop()
         })
     }
     
@@ -452,7 +457,6 @@ class GameCoordinator {
                 return this.#playerShipPlacement(unselectedShips)
             }
         }
-        //TODO event listener cleanup
         
 
         document.addEventListener('contextmenu', preventDefault)
