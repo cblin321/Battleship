@@ -13,14 +13,6 @@ class UIShip {
         }
     }
 
-    recieveAttack() {
-
-    }
-
-    sunk() {
-
-    }
-
     removeBorder() {
         this.pegs.forEach(x => x.classList.add("placed"))
     }
@@ -29,8 +21,6 @@ class UIShip {
         this.container.replaceWith(newContainer)
         this.container = newContainer
     }
-
-
 
 }
 

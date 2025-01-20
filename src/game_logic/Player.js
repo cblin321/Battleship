@@ -2,16 +2,20 @@ import Gameboard from "./Gameboard"
 class Player {
     playerType
     gameBoard
+    sideLength
     constructor(type, sideLength) {
         this.playerType = type
+        this.sideLength = sideLength
         this.gameBoard = new Gameboard(sideLength)
     }
 
     update(event) {
         //reset in event of game end
-        //recieve attack
-        if (event.eventType === "game_win") {
-          this.reset()  
+        console.log(event)
+        if (event.event_type === "reset") {
+            console.log("reset")
+            this.reset()  
+            console.log(this.gameBoard)
         } 
     }
 
@@ -25,7 +29,7 @@ class Player {
     }
 
     reset() {
-        this.gameBoard = new Gameboard(sideLength)
+        this.gameBoard = new Gameboard(this.sideLength)
     }
 
 

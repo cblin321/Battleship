@@ -83,13 +83,13 @@ class Gameboard {
         }
 
         if (orientation === "up") {
-            for (let i = coords[1] - (ship.length - 1); i < coords[1]; i++)
+            for (let i = coords[1] - (ship.length - 1); i <= coords[1]; i++)
                     if (this.ship_grid[i][coords[0]])
                         return true
         } 
 
         if (orientation === "left") {
-            for (let i = coords[0] - (ship.length - 1); i < coords[0]; i++)
+            for (let i = coords[0] - (ship.length - 1); i <= coords[0]; i++)
                 if (this.ship_grid[coords[1]][i])
                     return true
         }

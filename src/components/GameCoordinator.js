@@ -34,7 +34,6 @@ class GameCoordinator {
     #observer = new GameObserver([this.#player, this.#computer, this])
 
     constructor(playerShipContainer, computerShipContainer, boardContainer, instructionText) {
-        // console.log(playerShipContainer, computerShipContainer, boardContainer)
         boardContainer.classList.add("board-container")
         playerShipContainer.classList.add("ship-container")
         computerShipContainer.classList.add("ship-container");
@@ -72,7 +71,6 @@ class GameCoordinator {
                 computerCell.dataset.y = i
                 playerCell.dataset.x = j
                 playerCell.dataset.y = i
-
                 
                 playerUIBoard.appendChild(playerCell)
                 computerUIBoard.appendChild(computerCell)
@@ -88,7 +86,6 @@ class GameCoordinator {
      */
     update(event) {
         if (event.event_type === "attack") {
-            console.log(event)
             if (event.player.playerType === "cpu") {
                 switch (event.result) {
                     case 1:
@@ -136,7 +133,6 @@ class GameCoordinator {
                             x.classList.remove("valid-sillhouette")
                         })
                     }
-                    // console.log(event)
                     const orientation = event.orientation
                     const startCoord = orientation === "down" || orientation === "up" ? event.coords[1] : event.coords[0]   
                     const endpoint = orientation === "down" || orientation === "right" ? Math.min(this.BOARD_SIZE, startCoord + event.ship.game_logic.length) 
@@ -169,15 +165,16 @@ class GameCoordinator {
                     event.ship.ui.container.style.transform = `rotate(0deg)`
                     event.ship.ui.container.style.pointerEvents = "auto";
                 }
-            } else if (event.player.playerType === "cpu") {
-                // console.log(event)
-            }
+            } 
         }
 
         if (event.event_type === "game_win") {
-                this.#winner = event.winner
-                this.#changeText(`${this.#winner === "p" ? "Player" : "Computer"} wins`)
-                
+            this.#winner = event.winner
+            this.#changeText(`${this.#winner === "p" ? "Player" : "Computer"} wins`)
+            this.#observer.notifyObservers({event_type: "reset"})
+        }
+
+        if (event.event_type === "reset") {
                 //reset uiBoard
                 const [playerUIBoard, computerUIBoard] = this.#createUIBoardElement()
                 this.boardContainer.replaceChild(playerUIBoard, this.playerUIBoard)
@@ -187,8 +184,9 @@ class GameCoordinator {
                 this.computerUIBoard = computerUIBoard
                 
                 //reset ships
-                this.#playerShips.forEach(x => {
+                this.#playerShips.forEach((x, j) => {
                     const newShip = document.createElement("div")
+                    newShip.dataset.index = j
                     for (let i = 0; i < x.game_logic.length; i++) {
                         let newPeg = document.createElement("div")
                         newPeg.classList.add("ship-peg")
@@ -196,10 +194,9 @@ class GameCoordinator {
                     }
                     x.ui.reset(newShip)
                 })
-                
-                
         }
     }
+
 
     
     #giveWin(winner) {
@@ -216,16 +213,17 @@ class GameCoordinator {
         let unplaced = [...this.#playerShips]
         this.#playerShipPlacement(unplaced).then(x => {
             this.#computerShipPlacement(this.#computerShips)
-            this.#takeTurns()            
-        }).then(x => {
-            this.gameLoop()
-        })
+            this.#takeTurns()  
+        })        
     }
     
     #takeTurns() {
         //while there is no winner continue to take shots
-        if (this.#winner)
-            return
+        if (this.#winner) {
+            this.#winner = undefined
+                // console.log("repeat")
+                this.gameLoop()
+        }
         this.#makePlayerShot().then(x =>{
             // this.#makeComputerShot()
             this.#takeTurns()
@@ -247,7 +245,6 @@ class GameCoordinator {
             let orientation = orientationMapping[Math.floor(Math.random() * 4) + 1]
             let positions = this.#getValidPositions(unplacedShips[unplacedShips.length - 1]["game_logic"], orientation)
             const coords = positions[Math.floor(Math.random() * positions.length)]
-            console.log(unplacedShips[unplacedShips.length - 1], coords, orientation)
             const result = this.#placeShip(this.#computer, unplacedShips[unplacedShips.length - 1]["ui"].container, coords, orientation)
             unplacedShips.pop()
         }
@@ -269,7 +266,7 @@ class GameCoordinator {
     }
     
     
-    async #playerShipPlacement(unselectedShips) {                
+    async #playerShipPlacement(unselectedShips) {  
         const currHoveredCell = {
             x: undefined, 
             y: undefined
@@ -293,7 +290,7 @@ class GameCoordinator {
                 resolve()
             })
         }
-        let popup = this.#changeText("Click on a ship to select")
+        this.#changeText("Click on a ship to select")
         unselectedShips.forEach((x) => {
             x["ui"].container.classList.remove("selected")
         })
@@ -319,14 +316,15 @@ class GameCoordinator {
             
             return selectElement(x["ui"].container)
         })
+
+        // unselectedShips.forEach(x => console.log(x.ui))
         
         let rotation_count = 0
         
         const selectedShip = await Promise.race(shipPromiseList)
         let orientation = "down"
-        // this.#closePopup(popup)
 
-        popup = this.#changeText("Drag ship to valid cell on board and click to place \nRmb to rotate, d to deselect ship")
+        this.#changeText("Drag ship to valid cell on board and click to place \nRmb to rotate, d to deselect ship")
         const orientationMapping = {
             1: "down",
             2: "left",
@@ -414,7 +412,6 @@ class GameCoordinator {
             else 
                 classtoApply = 0 <= startCoord - this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"].length + 1 && !this.#player.gameBoard.willOverlap(this.#playerShips[parseInt(selectedShip.dataset.index)]["game_logic"], [parseInt(e.target.dataset.x), parseInt(e.target.dataset.y)], orientation) ? "valid-sillhouette" : "invalid-sillhouette"
             switch (orientation) {
-                // y = i, j = x
                 case "down":
                     for (let i = parseInt(e.target.dataset.y); i < endpoint; i++) 
                         this.playerUIBoard.children[i * this.BOARD_SIZE + parseInt(e.target.dataset.x)].classList.add(classtoApply)
@@ -453,15 +450,12 @@ class GameCoordinator {
                 selectedShip.style.pointerEvents = "auto";
                 [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
                 [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells));
-                // this.#closePopup(popup)
                 return this.#playerShipPlacement(unselectedShips)
             }
         }
         
 
-        document.addEventListener('contextmenu', preventDefault)
-        
-       
+        document.addEventListener('contextmenu', preventDefault)    
         
         document.addEventListener("keydown", (e) => deselectShip(e))
         //ship selection is over for current ship
@@ -469,13 +463,10 @@ class GameCoordinator {
             return
         
         //selected ship will be placed on the cell the mouse is over and if the cell is clicked
-        
         [...this.playerUIBoard.children].forEach(x => x.addEventListener("mouseover", cellSillhouette));
         [...this.playerUIBoard.children].forEach(x => x.addEventListener("mouseleave", clearCells))
         const cellPromiseList = [...this.playerUIBoard.children].map((x) => selectElement(x))
         const selectedCell = await Promise.race(cellPromiseList)
-        // console.log(selectedCell)
-
         const placementSuccess = this.#placeShip(this.#player, selectedShip, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)], orientation)
         //ship placement success
         document.removeEventListener("contextmenu", preventDefault)
@@ -484,12 +475,10 @@ class GameCoordinator {
         document.removeEventListener('mousemove', followingFunc);
         [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
         [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells))
-        // this.#closePopup(popup)
         if (placementSuccess)
             unselectedShips = unselectedShips.filter((x) => x["ui"].container != selectedShip)
         selectedShip.classList.remove("selected")
         this.#isActiveShipSelection = false
-        // console.log(unselectedShips)
         return this.#playerShipPlacement(unselectedShips)
     }
 
@@ -509,18 +498,14 @@ class GameCoordinator {
             return !(classlist.includes("hit") || classlist.includes("miss")) 
         })
         const promiseList = unselectedCells.map(x => selectElement(x))
-        //integrate with game logic
         const selectedCell = await Promise.race(promiseList)
-        // console.log(selectedCell)
         const result = this.#recieveAttack(this.#computer, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)])
-        // this.#closePopup(popup)
         return new Promise((resolve) => resolve([this.#computer, this.selectedCell]))
     }
 
     #makeComputerShot() {
         const unselectedCells = [...this.computerUIBoard.children].filter(x => !([...x.classList].includes("miss") || [...x.classList].includes("hit")))
         const selectedCell = unselectedCells[Math.floor(Math.random() * unselectedCells.length)]
-        console.log(selectedCell)
         this.#recieveAttack(this.#player, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)])
     }
     
@@ -532,11 +517,6 @@ class GameCoordinator {
         this.#instructionText.textContent = textEle
     }
 
-    #closePopup(popup) {
-        document.body.removeChild(popup)
-    }
-
-
     #placeShip(player, ship, coords, orientation) {
         ship = player.playerType === "p" ? this.#playerShips[ship.dataset.index] : this.#computerShips[ship.dataset.index] 
         const event = {
@@ -546,7 +526,6 @@ class GameCoordinator {
             "coords": coords,
             "orientation": orientation
         }
-        // console.log(event)
         this.#observer.placeShip(player, event)
         return event.result
     }
@@ -557,13 +536,9 @@ class GameCoordinator {
             "player": player, 
             "coords": coords,
         }
-        console.log(event)
         this.#observer.recieveAttack(player, event)
         return event.result
     }
 }
-
-
-
 
 export default GameCoordinator;
