@@ -13,7 +13,6 @@ class Player {
         //reset in event of game end
         console.log(event)
         if (event.event_type === "reset") {
-            console.log("reset")
             this.reset()  
             console.log(this.gameBoard)
         } 

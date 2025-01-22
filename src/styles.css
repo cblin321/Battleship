@@ -1,15 +1,26 @@
 :root {
-    --cell-size: 20px;
+    --cell-size: 2.5vw;
+    --font-color: white;
 }
 
 .jersey-10-regular {
     font-family: "Jersey 10", serif;
     font-weight: 400;
     font-style: normal;
-  }
+}
+
+p {
+    margin: 0;
+    padding: 0;
+}
 
 html {
     font-family: "Jersey 10";
+    color: var(--font-color);
+    height: 100vh;
+    width: 100vw;
+    font-size: 2vw;
+    text-align: center;
 }
 
 .player-cell.invalid-sillhouette {
@@ -17,7 +28,7 @@ html {
 }
 
 .player-cell.valid-sillhouette {
-    background-color: green;;
+    background-color: green;
 }
 
 .player-cell.hit {
@@ -67,14 +78,14 @@ body {
     grid-template-columns: repeat(10, 1fr);
     grid-template-rows: repeat(10, 1fr);
     gap: 0;
-    width: 220px;
+    width: calc(10 * var(--cell-size));
 }
 
 .ship-container {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
-    width: 100px;
+    width: 100vw;
 }
 
 .ship-peg {
@@ -86,10 +97,15 @@ body {
 body {
     margin: 0;
     height: 100vh;
+    width: 100vw;
 }
 
+
+
 .board-container {
-    display: flex;
-    justify-content: space-between;
-    flex-direction: row;
+    display: grid;
+    grid-template-rows: repeat(2, 2%);
+    grid-template-columns: repeat(2, 1fr);
+    align-items: center;
+    justify-items: center;
 }
