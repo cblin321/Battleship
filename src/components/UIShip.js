@@ -11,6 +11,7 @@ class UIShip {
             this.container.appendChild(peg)
             this.pegs.push(peg)
         }
+        this.container.classList.add("peg-container")
     }
 
     removeBorder() {

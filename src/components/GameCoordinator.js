@@ -177,15 +177,18 @@ class GameCoordinator {
         if (event.event_type === "reset") {
                 //reset uiBoard
                 const [playerUIBoard, computerUIBoard] = this.#createUIBoardElement()
-                this.boardContainer.replaceChild(playerUIBoard, this.playerUIBoard)
+                this.playerUIBoard.replaceWith(playerUIBoard)
+                // this.boardContainer.replaceChild(playerUIBoard, this.playerUIBoard)
                 this.playerUIBoard = playerUIBoard
                 
-                this.boardContainer.replaceChild(computerUIBoard, this.computerUIBoard)
+                this.computerUIBoard.replaceWith(computerUIBoard)
+                // this.boardContainer.replaceChild(computerUIBoard, this.computerUIBoard)
                 this.computerUIBoard = computerUIBoard
                 
                 //reset ships
                 this.#playerShips.forEach((x, j) => {
                     const newShip = document.createElement("div")
+                    newShip.classList.add("peg-container")
                     newShip.dataset.index = j
                     for (let i = 0; i < x.game_logic.length; i++) {
                         let newPeg = document.createElement("div")
@@ -225,7 +228,7 @@ class GameCoordinator {
                 this.gameLoop()
         }
         this.#makePlayerShot().then(x =>{
-            // this.#makeComputerShot()
+            this.#makeComputerShot()
             this.#takeTurns()
         })
     }
@@ -290,7 +293,7 @@ class GameCoordinator {
                 resolve()
             })
         }
-        this.#changeText("Click on a ship to select")
+        this.#changeText("Click on a ship to select it")
         unselectedShips.forEach((x) => {
             x["ui"].container.classList.remove("selected")
         })
@@ -322,14 +325,14 @@ class GameCoordinator {
         let rotation_count = 0
         
         const selectedShip = await Promise.race(shipPromiseList)
-        let orientation = "down"
+        let orientation = "right"
 
-        this.#changeText("Drag ship to valid cell on board and click to place \nRmb to rotate, d to deselect ship")
+        this.#changeText("Mouse over a valid cell and press LMB to place, RMB to rotate, d to deselect")
         const orientationMapping = {
-            1: "down",
-            2: "left",
-            3: "up",
-            4: "right"
+            1: "right",
+            2: "down",
+            3: "left",
+            4: "up"
         } 
 
         const rightClickListener =  (event) => {
@@ -390,8 +393,8 @@ class GameCoordinator {
                 yPos += yVel
                 ele.style.position = "absolute"
                 ele.style.pointerEvents = 'none'
-                ele.style.left = `${mouseX - ele.offsetWidth / 2}px`
-                ele.style.top = `${mouseY - ele.offsetWidth / 2}px`
+                ele.style.left = `${mouseX - ele.offsetHeight / 2}px`
+                ele.style.top = `${mouseY - ele.offsetHeight / 2}px`
                 
             }
             document.addEventListener('mousemove', followMouse)
@@ -483,6 +486,8 @@ class GameCoordinator {
     }
 
     async #makePlayerShot() {
+        if (this.#winner)
+            return new Promise(resolve => resolve())
         //get where the player wants to shoot
         this.#changeText("Select a square to shoot")
         const selectElement = (ele) => {
@@ -504,10 +509,17 @@ class GameCoordinator {
     }
 
     #makeComputerShot() {
+        if (this.#winner)
+            return
         const unselectedCells = [...this.computerUIBoard.children].filter(x => !([...x.classList].includes("miss") || [...x.classList].includes("hit")))
         const selectedCell = unselectedCells[Math.floor(Math.random() * unselectedCells.length)]
         this.#recieveAttack(this.#player, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)])
     }
+
+//     <div class="container">
+//   <span class="title">You</span>
+//   <span class="title">Win!</span>
+// </div>
     
     /**
      * Change instruction text meant to notify the user
