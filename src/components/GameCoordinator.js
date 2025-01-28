@@ -443,7 +443,7 @@ class GameCoordinator {
         selectedShip.classList.add("selected")
         document.addEventListener("mousedown", rightClickListener)
         let cellPromiseList = [...this.playerUIBoard.children].map((x) => this.#selectElement(x))
-        //TODO convert this to use a promise
+        //TODO fix bug with instruction text and deselecting
         let deselectShip
         let p = new Promise((resolve) => {
             deselectShip =  (e) => {
@@ -477,11 +477,9 @@ class GameCoordinator {
         [...this.playerUIBoard.children].forEach(x => x.addEventListener("mouseover", cellSillhouette));
         [...this.playerUIBoard.children].forEach(x => x.addEventListener("mouseleave", clearCells))
         let selectedCell = await Promise.race(cellPromiseList) 
-        if (selectedCell === "deselect") {
-            this.#changeText("fdksjfsdklfjkl")
-            this.#playerShipPlacement(unselectedShips)
-            return
-        }
+        if (selectedCell === "deselect")     
+            return this.#playerShipPlacement(unselectedShips)
+
         const placementSuccess = this.#placeShip(this.#player, selectedShip, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)], orientation)
         document.removeEventListener("contextmenu", preventDefault)
         document.removeEventListener("mousedown", rightClickListener)
@@ -492,7 +490,6 @@ class GameCoordinator {
         if (placementSuccess)
             unselectedShips = unselectedShips.filter((x) => x["ui"].container != selectedShip)
         selectedShip.classList.remove("selected")
-        // this.#isActiveShipSelection = false
         return this.#playerShipPlacement(unselectedShips)
     }
 
@@ -500,7 +497,7 @@ class GameCoordinator {
         if (this.#winner)
             return new Promise(resolve => resolve())
         //get where the player wants to shoot
-        this.#changeText("Select a square to shoot")
+        this.#changeText("Select a cell to shoot")
 
         const unselectedCells = [...this.computerUIBoard.children].filter(x => {
             let classlist = [...x.classList]
