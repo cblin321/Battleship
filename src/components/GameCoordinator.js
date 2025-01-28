@@ -268,8 +268,19 @@ class GameCoordinator {
         return validPositions;
     }
     
-    
+    #selectElement(ele) {
+        return new Promise((resolve) => {
+            ele.addEventListener("click", () => {
+                resolve(ele)
+            })
+            
+        })
+        
+    }
+
+
     async #playerShipPlacement(unselectedShips) {  
+        console.log(unselectedShips)
         const currHoveredCell = {
             x: undefined, 
             y: undefined
@@ -289,6 +300,7 @@ class GameCoordinator {
         
         this.#isActiveShipSelection = true
         if (unselectedShips.length === 0) {
+            console.log("no more ships")
             return new Promise((resolve) => {
                 resolve()
             })
@@ -303,21 +315,12 @@ class GameCoordinator {
         let xVel = 0  
         let yVel = 0  
         const acceleration = 1.5 
-        const selectElement = (ele) => {
-            return new Promise((resolve) => {
-                ele.addEventListener("click", () => {
-                    resolve(ele)
-                })
-                
-            })
-            
-        }
         
         //wait until the user selects a ship
         //get 1st ship to be clicked
         const shipPromiseList = unselectedShips.map((x) => {
             
-            return selectElement(x["ui"].container)
+            return this.#selectElement(x["ui"].container)
         })
 
         // unselectedShips.forEach(x => console.log(x.ui))
@@ -436,52 +439,60 @@ class GameCoordinator {
         }
 
         const followingFunc = wrapper(selectedShip)
+
         selectedShip.classList.add("selected")
         document.addEventListener("mousedown", rightClickListener)
-        const deselectShip =  (e) => {
-            if (e.key === "d" || e.key === "D") {
-                //event listener cleanup
-                document.removeEventListener("mousedown", rightClickListener)
-                selectedShip.classList.remove("selected")
-                document.removeEventListener("keydown", deselectShip)
-                document.removeEventListener("mousemove", followingFunc) // Remove listener after selection
-                selectedShip.style.position = "static"
-                document.removeEventListener("contextmenu", preventDefault)
-                selectedShip.style.transform = `rotate(0deg)`
-                //restart playerSelection Process
-                this.#isActiveShipSelection = true
-                selectedShip.style.pointerEvents = "auto";
-                [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
-                [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells));
-                return this.#playerShipPlacement(unselectedShips)
+        let cellPromiseList = [...this.playerUIBoard.children].map((x) => this.#selectElement(x))
+        //TODO convert this to use a promise
+        let deselectShip
+        let p = new Promise((resolve) => {
+            deselectShip =  (e) => {
+                if (e.key === "d" || e.key === "D") {
+                    //event listener cleanup
+                    this.#isActiveShipSelection = false
+                    document.removeEventListener("mousedown", rightClickListener)
+                    selectedShip.classList.remove("selected")
+                    document.removeEventListener("keydown", deselectShip)
+                    document.removeEventListener("mousemove", followingFunc) // Remove listener after selection
+                    selectedShip.style.position = "static"
+                    document.removeEventListener("contextmenu", preventDefault)
+                    selectedShip.style.transform = `rotate(0deg)`
+                    selectedShip.style.pointerEvents = "auto";
+                    [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
+                    [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells));
+                    resolve("deselect")
+                }
             }
-        }
+            document.addEventListener("keydown", (e) => deselectShip(e));
+
+        })
+
+        cellPromiseList.push(p)
         
 
-        document.addEventListener('contextmenu', preventDefault)    
+        document.addEventListener('contextmenu', preventDefault); 
         
-        document.addEventListener("keydown", (e) => deselectShip(e))
-        //ship selection is over for current ship
-        if (!this.#isActiveShipSelection)
-            return
         
         //selected ship will be placed on the cell the mouse is over and if the cell is clicked
         [...this.playerUIBoard.children].forEach(x => x.addEventListener("mouseover", cellSillhouette));
         [...this.playerUIBoard.children].forEach(x => x.addEventListener("mouseleave", clearCells))
-        const cellPromiseList = [...this.playerUIBoard.children].map((x) => selectElement(x))
-        const selectedCell = await Promise.race(cellPromiseList)
+        let selectedCell = await Promise.race(cellPromiseList) 
+        if (selectedCell === "deselect") {
+            this.#changeText("fdksjfsdklfjkl")
+            this.#playerShipPlacement(unselectedShips)
+            return
+        }
         const placementSuccess = this.#placeShip(this.#player, selectedShip, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)], orientation)
-        //ship placement success
         document.removeEventListener("contextmenu", preventDefault)
         document.removeEventListener("mousedown", rightClickListener)
-        document.removeEventListener("keydown", deselectShip)
+        document.removeEventListener("keydown", deselectShip) 
         document.removeEventListener('mousemove', followingFunc);
         [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
         [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells))
         if (placementSuccess)
             unselectedShips = unselectedShips.filter((x) => x["ui"].container != selectedShip)
         selectedShip.classList.remove("selected")
-        this.#isActiveShipSelection = false
+        // this.#isActiveShipSelection = false
         return this.#playerShipPlacement(unselectedShips)
     }
 
@@ -490,20 +501,13 @@ class GameCoordinator {
             return new Promise(resolve => resolve())
         //get where the player wants to shoot
         this.#changeText("Select a square to shoot")
-        const selectElement = (ele) => {
-            return new Promise((resolve) => {
-                ele.addEventListener("click", () => {
-                    resolve(ele)
-                })  
-            })
-        }
 
         const unselectedCells = [...this.computerUIBoard.children].filter(x => {
             let classlist = [...x.classList]
             return !(classlist.includes("hit") || classlist.includes("miss")) 
         })
-        const promiseList = unselectedCells.map(x => selectElement(x))
-        const selectedCell = await Promise.race(promiseList)
+        const promiseList = unselectedCells.map(x => this.#selectElement(x))
+        const selectedCell = await Promise.race(promiseList) 
         const result = this.#recieveAttack(this.#computer, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)])
         return new Promise((resolve) => resolve([this.#computer, this.selectedCell]))
     }
