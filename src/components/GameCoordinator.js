@@ -7,7 +7,6 @@ class GameCoordinator {
 
     BOARD_SIZE = 10
     
-    #isActiveShipSelection
     #winner 
     
     #player = new Player("p", this.BOARD_SIZE)
@@ -171,18 +170,31 @@ class GameCoordinator {
         if (event.event_type === "game_win") {
             this.#winner = event.winner
             this.#changeText(`${this.#winner === "p" ? "Player" : "Computer"} wins`)
+            this.#createSplashScreen(["You", "Win!"])
+
             this.#observer.notifyObservers({event_type: "reset"})
         }
 
         if (event.event_type === "reset") {
                 //reset uiBoard
-                const [playerUIBoard, computerUIBoard] = this.#createUIBoardElement()
-                this.playerUIBoard.replaceWith(playerUIBoard)
-                // this.boardContainer.replaceChild(playerUIBoard, this.playerUIBoard)
-                this.playerUIBoard = playerUIBoard
+                const [playerUIBoard, computerUIBoard] = this.#createUIBoardElement();
+                // [...this.playerUIBoard.children].forEach((x, i) => x.replaceWith([...playerUIBoard.children][i]))
+                console.log(computerUIBoard)
+                this.playerUIBoard.replaceWith(playerUIBoard);
+
+
+                this.playerUIBoard = playerUIBoard;
                 
-                this.computerUIBoard.replaceWith(computerUIBoard)
-                // this.boardContainer.replaceChild(computerUIBoard, this.computerUIBoard)
+                //TODO test playing multiple rounds
+                //TODO make a "you lose" splash screen
+
+                // [...this.computerUIBoard.children].forEach((x, i) => {
+                //     x.replaceWith([...computerUIBoard.children][i]);
+                //     console.log(x, [...computerUIBoard.children][i])
+                // })
+                this.computerUIBoard.replaceWith(computerUIBoard);
+
+
                 this.computerUIBoard = computerUIBoard
                 
                 //reset ships
@@ -201,6 +213,25 @@ class GameCoordinator {
     }
 
 
+    #createSplashScreen(words) {
+        const splashContainer = document.createElement("div")
+        splashContainer.classList.add("splash-container")
+
+        words.forEach(x => {
+            const ele = document.createElement("span")
+            ele.classList.add("title")
+            ele.textContent = x
+
+            splashContainer.appendChild(ele)
+        })
+
+        splashContainer.addEventListener("animationend", (e) => {
+            if (e.animationName === "lift")
+                splashContainer.remove()
+        })
+        document.body.prepend(splashContainer)
+
+    }
     
     #giveWin(winner) {
         const event = {
@@ -222,12 +253,13 @@ class GameCoordinator {
     
     #takeTurns() {
         //while there is no winner continue to take shots
-        if (this.#winner) {
-            this.#winner = undefined
-                // console.log("repeat")
-                this.gameLoop()
-        }
         this.#makePlayerShot().then(x =>{
+            // this.#giveWin(this.#player)
+            if (this.#winner) {
+                this.#winner = undefined
+                this.gameLoop()
+                return
+            }
             this.#makeComputerShot()
             this.#takeTurns()
         })
@@ -298,7 +330,6 @@ class GameCoordinator {
 
         clearCells()
         
-        this.#isActiveShipSelection = true
         if (unselectedShips.length === 0) {
             console.log("no more ships")
             return new Promise((resolve) => {
@@ -323,7 +354,6 @@ class GameCoordinator {
             return this.#selectElement(x["ui"].container)
         })
 
-        // unselectedShips.forEach(x => console.log(x.ui))
         
         let rotation_count = 0
         
@@ -443,13 +473,11 @@ class GameCoordinator {
         selectedShip.classList.add("selected")
         document.addEventListener("mousedown", rightClickListener)
         let cellPromiseList = [...this.playerUIBoard.children].map((x) => this.#selectElement(x))
-        //TODO fix bug with instruction text and deselecting
         let deselectShip
         let p = new Promise((resolve) => {
             deselectShip =  (e) => {
                 if (e.key === "d" || e.key === "D") {
                     //event listener cleanup
-                    this.#isActiveShipSelection = false
                     document.removeEventListener("mousedown", rightClickListener)
                     selectedShip.classList.remove("selected")
                     document.removeEventListener("keydown", deselectShip)
@@ -460,6 +488,7 @@ class GameCoordinator {
                     selectedShip.style.pointerEvents = "auto";
                     [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
                     [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells));
+                    [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", this.#selectElement));
                     resolve("deselect")
                 }
             }
@@ -504,23 +533,20 @@ class GameCoordinator {
             return !(classlist.includes("hit") || classlist.includes("miss")) 
         })
         const promiseList = unselectedCells.map(x => this.#selectElement(x))
-        const selectedCell = await Promise.race(promiseList) 
+        const selectedCell = await Promise.race(promiseList);
+        [...this.computerUIBoard.children].forEach(x => x.removeEventListener("click", this.#selectElement))
         const result = this.#recieveAttack(this.#computer, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)])
         return new Promise((resolve) => resolve([this.#computer, this.selectedCell]))
     }
 
     #makeComputerShot() {
-        if (this.#winner)
+        if (this.#winner) 
             return
         const unselectedCells = [...this.computerUIBoard.children].filter(x => !([...x.classList].includes("miss") || [...x.classList].includes("hit")))
+        console.log(unselectedCells)
         const selectedCell = unselectedCells[Math.floor(Math.random() * unselectedCells.length)]
         this.#recieveAttack(this.#player, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)])
     }
-
-//     <div class="container">
-//   <span class="title">You</span>
-//   <span class="title">Win!</span>
-// </div>
     
     /**
      * Change instruction text meant to notify the user

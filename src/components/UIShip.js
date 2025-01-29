@@ -21,6 +21,7 @@ class UIShip {
     reset(newContainer) {
         this.container.replaceWith(newContainer)
         this.container = newContainer
+        this.pegs = [...this.container.children]
     }
 
 }
