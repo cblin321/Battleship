@@ -1,7 +1,8 @@
 :root {
     --cell-size: 2.2vw;
     --font-color: white;
-    --primary-color: #7faf75;
+    --win-color: #35ba17;
+    --lose-color: #ba1735;
 }
 
 .jost {
@@ -45,7 +46,7 @@ html {
 }
 
 .player-cell.hit, .ship-peg, .computer-cell, .player-cell.miss {
-    transition: all .3s;
+    transition: all .15s;
 } 
 
 .player-cell.placed {
@@ -138,12 +139,19 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    background: var(--primary-color);
     height: 100vh;
     width: 100vw;
     animation: lift 0.8s ease-in-out;
     animation-delay: 1.6s;
     animation-fill-mode: forwards;
+  }
+  
+  .win {
+    background: var(--win-color);  
+  }
+
+  .lose {
+    background: var(--lose-color)
   }
   
   .title {

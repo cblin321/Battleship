@@ -21,7 +21,7 @@ playerBoardLabel.textContent = "Your Board"
 
 computerBoardLabel.textContent = "CPU Board"
 
-const GC = new GameCoordinator(playerShipContainer, computerShipContainer, boardContainer, instructionText)
+const GC = new GameCoordinator(playerShipContainer, boardContainer, instructionText)
 
 
 
