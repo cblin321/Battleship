@@ -7,10 +7,10 @@ class GameCoordinator {
     BOARD_SIZE = 10
 
     ORIENTATION_MAPPING = {
-        1: "down",
-        2: "left",
-        3: "up",
-        4: "right"
+        1: "right",
+        2: "down",
+        3: "left",
+        4: "up"
     }
     
     #winner 
@@ -395,7 +395,10 @@ class GameCoordinator {
                     document.removeEventListener("mousemove", followingFunc) // Remove listener after selection
                     selectedShip.style.position = "static"
                     document.removeEventListener("contextmenu", preventDefault)
+                    const old_transition = JSON.parse(JSON.stringify(selectedShip.style.transition))
+                    selectedShip.style.transition = "none"
                     selectedShip.style.transform = `rotate(0deg)`
+                    selectedShip.style.transform = old_transition
                     selectedShip.style.pointerEvents = "auto";
                     [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseover", cellSillhouette));
                     [...this.playerUIBoard.children].forEach(x => x.removeEventListener("mouseleave", clearCells));
@@ -477,7 +480,7 @@ class GameCoordinator {
         const promiseList = unselectedCells.map(x => this.#selectElement(x))
         const selectedCell = await Promise.race(promiseList);
         [...this.computerUIBoard.children].forEach(x => x.removeEventListener("click", this.#selectElement))
-        const result = this.#recieveAttack(this.#computer, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)])
+        this.#recieveAttack(this.#computer, [parseInt(selectedCell.dataset.x), parseInt(selectedCell.dataset.y)])
         return new Promise((resolve) => resolve([this.#computer, this.selectedCell]))
     }
 

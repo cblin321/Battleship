@@ -31,9 +31,10 @@ boardContainer.appendChild(GC.playerUIBoard)
 boardContainer.appendChild(GC.computerUIBoard)
 
 banner.appendChild(gameTitle)
+banner.appendChild(instructionText)
 
 document.body.appendChild(banner)
-document.body.appendChild(instructionText)
+// document.body.appendChild(instructionText)
 // document.body.appendChild(computerShipContainer)
 
 document.body.appendChild(boardContainer)

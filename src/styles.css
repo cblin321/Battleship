@@ -86,8 +86,12 @@ html {
     grid-template-columns: repeat(10, 1fr);
     grid-template-rows: repeat(10, 1fr);
     gap: 0;
-    width: calc(10 * var(--cell-size));
+    width: calc(10 * var(--cell-size) + 10 * var(--border-width));
     padding: 1%;
+}
+
+h1 {
+  padding: 1%;
 }
 
 .ship-container {
