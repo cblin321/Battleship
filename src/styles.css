@@ -1,8 +1,14 @@
 :root {
     --cell-size: 2.2vw;
-    --font-color: white;
-    --win-color: #35ba17;
+    --font-color: #e3e3e3;
+    --win-color: #95db83;
     --lose-color: #ba1735;
+    --hit-cell: #d36b70;
+    --miss-cell: #d3916b;
+    --player-placed-ship: #9a6bd3;
+    --valid: #70d36b;
+    --invalid: #b6bcbf;
+    --border-width: 1.5px;
 }
 
 .jost {
@@ -11,7 +17,7 @@
     font-style: normal;
 }
 
-p {
+p, h1 {
     margin: 0;
     padding: 0;
 }
@@ -23,26 +29,25 @@ html {
     width: 100vw;
     font-size: 2vw;
     text-align: center;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
 
 .player-cell.invalid-sillhouette {
-    background-color: gray;
+    background-color: var(--invalid);
 }
 
 .player-cell.valid-sillhouette {
-    background-color: green;
+    background-color: var(--valid);
 }
 
-.player-cell.hit {
-    background-color: red !important;
-}
-
-.computer-cell.hit {
-    background-color: green !important;
+.computer-cell.hit, .player-cell.hit  {
+    background-color: var(--hit-cell) !important;
 }
 
 .player-cell.miss, .computer-cell.miss {
-    background-color: orange;
+    background-color: var(--miss-cell);
 }
 
 .player-cell.hit, .ship-peg, .computer-cell, .player-cell.miss {
@@ -50,28 +55,22 @@ html {
 } 
 
 .player-cell.placed {
-    background-color: purple;
+    background-color: var(--player-placed-ship);
 }
 
 .ship-peg.placed {
     border: none !important;
-}
-  
-
-body {
-    background-color: #1f1d1d;
-
 }
 
 .computer-cell, .player-cell {
     position: static !important;
     width: var(--cell-size);
     height: var(--cell-size);
-    border: 1px solid white;
+    border: var(--border-width) solid var(--font-color);
 }
 
 .player-cell .selected {
-    border: 1px solid orange;
+    border: var(--border-width) solid orange;
 }
 
 .header-text {
@@ -103,13 +102,15 @@ body {
     display: flex;
 }
 
+.peg-container
+
 h1 {
     margin: 0;
     padding: 0;
 }
 
 .ship-peg {
-    border: 1px solid orange;
+    border: var(--border-width) solid var(--player-placed-ship);
     height: var(--cell-size);
     width: var(--cell-size);
 }
@@ -118,6 +119,8 @@ body {
     margin: 0;
     height: 100vh;
     width: 100vw;
+    background-color: #1f1d1d;
+    padding: 0;
 }
 
 
@@ -156,7 +159,7 @@ body {
   
   .title {
     font-size: 81px;
-    color: #fff;
+    color: var(--font-color);
     text-align: center;
     animation: wave 0.4s, jump 1s;
     position: relative;
