@@ -12,11 +12,11 @@ module.exports = {
     }, 
     plugins: [
         new HtmlWebpackPlugin({
-            template: "./dist/index.html"
+            template: "./src/index.html"
         })
     ], 
     devServer: {
-        watchFiles: ["./dist/index.html"],
+        watchFiles: ["./src/index.html"],
       },
     module: {
         rules: [
@@ -24,6 +24,11 @@ module.exports = {
             test: /\.css$/i,
             use: ["style-loader", "css-loader"],
           },
+          {
+            test: /\.(woff|woff2|ttf)$/,
+            type: "asset/resource"
+            
+          }
         ],
       },
 }

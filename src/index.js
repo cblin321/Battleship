@@ -1,4 +1,5 @@
 import GameCoordinator from "./components/GameCoordinator"
+import "./Jost-regular.ttf"
 import "./styles.css"
 const gameTitle = document.createElement("h1")
 const playerShipContainer = document.createElement("div")

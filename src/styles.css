@@ -1,3 +1,8 @@
+@font-face {
+  font-family: "jost";
+  src: url("./Jost-regular.ttf") format('woff2');
+}
+
 :root {
     --cell-size: 2.2vw;
     --font-color: #e3e3e3;
@@ -5,16 +10,11 @@
     --lose-color: #ba1735;
     --hit-cell: #d36b70;
     --miss-cell: #d3916b;
+    --sunk-cell: #9b142d;
     --player-placed-ship: #9a6bd3;
     --valid: #70d36b;
     --invalid: #b6bcbf;
     --border-width: 1.5px;
-}
-
-.jost {
-    font-family: "jost", serif;
-    font-weight: 300;
-    font-style: normal;
 }
 
 p, h1 {
@@ -114,7 +114,7 @@ h1 {
 }
 
 .ship-peg {
-    border: var(--border-width) solid var(--player-placed-ship);
+    border: calc(var(--border-width) * 1.5) solid var(--player-placed-ship);
     height: var(--cell-size);
     width: var(--cell-size);
 }

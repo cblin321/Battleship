@@ -10,6 +10,10 @@ class UIShip {
             peg.classList.add("ship-peg")
             this.container.appendChild(peg)
             this.pegs.push(peg)
+            if (i != this.length - 1) {
+                peg.style.borderRight = "none"
+                console.log(peg)
+            }
         }
         this.container.classList.add("peg-container")
     }
