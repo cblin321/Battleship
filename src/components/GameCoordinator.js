@@ -90,16 +90,18 @@ class GameCoordinator {
     update(event) {
         if (event.event_type === "attack") {
             if (event.player.playerType === "cpu") {
-                if (event.result !== 2) 
-                        //player hit computer ship
-                        [...this.computerUIBoard.children][event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add(event.result === 1 ? "hit" : "miss")
-                else     
-                        //player wins
-                        this.#giveWin(this.#player)
+                if (event.result !== 2)  {
+                    //player hit computer ship
+                    [...this.computerUIBoard.children][event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add(event.result === 1 ? "hit" : "miss")
+                }
+                else 
+                    //player wins
+                    this.#giveWin(this.#player)
             }   else {
-                if (event.result !== 2)
+                if (event.result !== 2) {
                     //computer hit player ship
                     [...this.playerUIBoard.children][event.coords[1] * this.BOARD_SIZE + event.coords[0]].classList.add(event.result === 1 ? "hit" : "miss")
+                }
                 else     
                     //player wins
                     this.#giveWin(this.#computer)
